@@ -35,8 +35,7 @@ class InteractionReceiver : BroadcastReceiver() {
         listeners.forEach {
             it.onInteraction(
                 InteractionEventData(
-                    interactionEvent = interactionEvent, appPackage = applicationExtra,
-                    fileName
+                    interactionEvent = interactionEvent, appPackage = applicationExtra, fileName = fileName
                 )
             )
         }

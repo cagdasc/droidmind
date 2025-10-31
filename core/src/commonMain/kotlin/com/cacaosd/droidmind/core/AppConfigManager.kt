@@ -1,12 +1,12 @@
-package com.cacaosd.droidmind.adb
+package com.cacaosd.droidmind.core
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import com.cacaosd.droidmind.core.logging.Logger
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.logging.Logger
+import java.time.Clock
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * Manages application configuration directories and files
@@ -15,21 +15,16 @@ import java.util.logging.Logger
 class AppConfigManager(
     private val appName: String,
     private val appVersion: String = "1.0",
-    private val packageName: String
+    private val packageName: String,
+    private val clock: Clock
 ) {
-    private val logger = Logger.getLogger(AppConfigManager::class.java.name)
-
     fun initializeApp() {
         // Initialize configuration
-        if (initialize()) {
-            println("✅ Configuration initialized successfully")
-
-            // Check if first run
-            if (isFirstRun()) {
-                println("👋 Welcome! This is your first time running the app.")
-                // Perform first-run setup
-                markFirstRunCompleted()
-            }
+        // Check if first run
+        if (initialize() && isFirstRun()) {
+            Logger.debug("This is your first time running the app.")
+            // Perform first-run setup
+            markFirstRunCompleted()
         }
     }
 
@@ -66,11 +61,11 @@ class AppConfigManager(
         return try {
             createDirectoryStructure()
             createDefaultConfigFiles()
-            logger.info("Application config manager initialized successfully")
-            logger.info("Config directory: ${configDir.toAbsolutePath()}")
+            Logger.debug("Application config manager initialized successfully")
+            Logger.debug("Config directory: ${configDir.toAbsolutePath()}")
             true
         } catch (e: Exception) {
-            logger.severe("Failed to initialize config manager: ${e.message}")
+            Logger.error(message = "Failed to initialize config manager: ${e.message}", throwable = e)
             false
         }
     }
@@ -90,7 +85,7 @@ class AppConfigManager(
             try {
                 if (!Files.exists(dir)) {
                     Files.createDirectories(dir)
-                    logger.info("Created directory: ${dir.toAbsolutePath()}")
+                    Logger.info("Created directory: ${dir.toAbsolutePath()}")
                 }
 
                 // Ensure directory is writable
@@ -98,7 +93,8 @@ class AppConfigManager(
                     throw SecurityException("Directory is not writable: $dir")
                 }
             } catch (e: Exception) {
-                throw RuntimeException("Failed to create directory: $dir", e)
+                Logger.error("Failed to create directory: $dir", e)
+                throw RuntimeException(e)
             }
         }
     }
@@ -108,11 +104,12 @@ class AppConfigManager(
      */
     private fun createDefaultConfigFiles() {
         // Main configuration file
+        val dateTimeText = clock.instant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
         if (!Files.exists(mainConfigFile)) {
             val defaultConfig = """
                 # $appName Configuration File
                 # Version: $appVersion
-                # Created: ${Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())}
+                # Created: $dateTimeText
                 
                 app.name=${appName}
                 app.version=${appVersion}
@@ -133,7 +130,7 @@ class AppConfigManager(
             """.trimIndent()
 
             Files.writeString(mainConfigFile, defaultConfig)
-            logger.info("Created default config file: ${mainConfigFile.fileName}")
+            Logger.info("Created default config file: ${mainConfigFile.fileName}")
         }
 
         // User preferences file
@@ -154,19 +151,8 @@ class AppConfigManager(
             """.trimIndent()
 
             Files.writeString(userPrefsFile, defaultPrefs)
-            logger.info("Created default preferences file: ${userPrefsFile.fileName}")
+            Logger.info("Created default preferences file: ${userPrefsFile.fileName}")
         }
-    }
-
-    /**
-     * Get a subdirectory within the config directory
-     */
-    fun getSubDirectory(name: String): Path {
-        val subDir = configDir.resolve(name)
-        if (!Files.exists(subDir)) {
-            Files.createDirectories(subDir)
-        }
-        return subDir
     }
 
     /**
@@ -213,7 +199,7 @@ class AppConfigManager(
                 properties.store(output, "Updated first run status")
             }
         } catch (e: Exception) {
-            logger.warning("Failed to update first run status: ${e.message}")
+            Logger.error("Failed to update first run status: ${e.message}", e)
         }
     }
 

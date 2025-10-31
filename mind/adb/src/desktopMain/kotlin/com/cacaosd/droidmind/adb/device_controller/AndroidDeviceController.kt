@@ -3,16 +3,18 @@ package com.cacaosd.droidmind.adb.device_controller
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
-import com.cacaosd.droidmind.adb.AppConfigManager
+import com.cacaosd.droidmind.adb.DeviceConstants
 import com.cacaosd.droidmind.adb.layout_optimizer.LayoutOptimiser
 import com.cacaosd.droidmind.adb.layout_optimizer.getLayoutOptimiser
+import com.cacaosd.droidmind.core.AppConfigManager
 import com.cacaosd.droidmind.shared.extension.asFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
+import java.time.Clock
+import java.util.concurrent.TimeUnit
 
 actual fun getAndroidDeviceController(appConfigManager: AppConfigManager, clock: Clock): DeviceController =
     AndroidDeviceController(
@@ -93,9 +95,9 @@ class AndroidDeviceController(
     override suspend fun getUiDump(packageName: String, serial: String?): String = withContext(Dispatchers.IO) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
 
-        val timestamp = clock.now().epochSeconds
+        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.millis())
         val xmlName = "uidump_${packageName}_$timestamp.xml"
-        val remotePath = "/sdcard/Download/$xmlName"
+        val remotePath = "${DeviceConstants.FILE_DOWNLOAD_PATH}/$xmlName"
 
         sendData(
             device.serialNumber,
@@ -151,17 +153,17 @@ class AndroidDeviceController(
     override suspend fun screenshot(serial: String?): String = withContext(Dispatchers.IO) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
         val screenshotsPath = appConfigManager.screenshotsDir.toAbsolutePath().toString()
-        val timestamp = clock.now().epochSeconds
+        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.millis())
 
         device.executeShellCommand(
-            "screencap -p /sdcard/Pictures/${timestamp}.png",
+            "screencap -p ${DeviceConstants.FILE_PICTURES_PATH}/${timestamp}.png",
             CollectingReceiver()
         )
         delay(200)
-        device.pullFile("/sdcard/Pictures/${timestamp}.png", "$screenshotsPath/${timestamp}.png")
+        device.pullFile("${DeviceConstants.FILE_PICTURES_PATH}/${timestamp}.png", "$screenshotsPath/${timestamp}.png")
         delay(200)
         device.executeShellCommand(
-            "rm /sdcard/Pictures/${timestamp}.png",
+            "rm ${DeviceConstants.FILE_PICTURES_PATH}/${timestamp}.png",
             CollectingReceiver()
         )
 

@@ -15,6 +15,7 @@ kotlin {
         val desktopMain by getting
 
         commonMain.dependencies {
+            implementation(project(":core"))
             implementation(project(":feature:chat"))
             implementation(project(":ui:theme"))
             implementation(project(":mind:adb"))

@@ -33,6 +33,7 @@ plugins {
 }
 
 include(":composeApp")
+include(":core")
 include(":feature:chat")
 include(":ui:theme")
 include(":mind:adb")

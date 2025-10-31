@@ -19,11 +19,11 @@ import com.cacaosd.interaction_engine.util.json
 import com.cacaosd.interaction_engine.util.saveStringToDownloads
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
+import java.time.Clock
+import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.time.Clock
 
 /**
  * Accessibility-based tracking service.
@@ -39,6 +39,7 @@ class InteractionTrackingService : LifecycleAccessibilityService() {
         addListener(interactionListener())
     }
     private val uiHierarchyDumper = UiHierarchyDumper()
+    private val clock = Clock.systemUTC()
 
     private val accessibilityEventFlow = MutableSharedFlow<AccessibilityEvent>()
     private val eventCollection = mutableListOf<AccessibilityEventModel>()
@@ -101,7 +102,7 @@ class InteractionTrackingService : LifecycleAccessibilityService() {
                     Log.i(SERVICE_NAME, "Stopped recording accessibility events")
                     val applicationPackage = interactionEventData.appPackage
                     saveStringToDownloads(
-                        fileName = "${applicationPackage}_agent_events_${Clock.System.now().epochSeconds}.log",
+                        fileName = "${applicationPackage}_agent_events_${clock.millis()}.log",
                         content = json.encodeToString(eventCollection)
                     )
                     eventCollection.clear()
@@ -121,7 +122,7 @@ class InteractionTrackingService : LifecycleAccessibilityService() {
 
     fun mapAccessibilityEvent(accessibilityEvent: AccessibilityEvent): AccessibilityEventModel =
         AccessibilityEventModel(
-            timestamp = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+            timestamp = clock.instant().atZone(ZoneId.systemDefault()).toLocalDateTime().toKotlinLocalDateTime(),
             eventType = eventTypeToText(accessibilityEvent.eventType),
             applicationPackage = accessibilityEvent.packageName?.toString(),
             viewClass = accessibilityEvent.className?.toString(),

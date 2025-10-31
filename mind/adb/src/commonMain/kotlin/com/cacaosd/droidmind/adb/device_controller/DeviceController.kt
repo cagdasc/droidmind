@@ -1,7 +1,7 @@
 package com.cacaosd.droidmind.adb.device_controller
 
-import com.cacaosd.droidmind.adb.AppConfigManager
-import kotlin.time.Clock
+import com.cacaosd.droidmind.core.AppConfigManager
+import java.time.Clock
 
 interface DeviceController {
 

@@ -105,7 +105,7 @@ class ChatViewModel(
 
     private fun collectAgentEvent() {
         mcpMessageFlow
-            .map { event ->
+            .mapNotNull { event ->
                 when (event) {
                     is McpMessage.Request.User -> MessageBubble.request(
                         sender = MessageOwner.User,
@@ -138,9 +138,15 @@ class ChatViewModel(
                         }
                         null
                     }
+
+                    is McpMessage.Response.ToolResult -> {
+                        MessageBubble.response(
+                            sender = MessageOwner.Assistant,
+                            content = event.content.orEmpty(),
+                        ).takeIf { event.toolName == "verify_ui_text" }
+                    }
                 }
             }
-            .filterNotNull()
             .onEach { message ->
                 _chatScreenUiState.update { state ->
                     state.copy(
@@ -216,11 +222,9 @@ class ChatViewModel(
 
     private fun stopScenario() {
         viewModelScope.launch(Dispatchers.Default) {
-            println(currentCoroutineContext())
             _chatScreenUiState.update { state ->
                 state.copy(executionState = ExecutionState.Idle)
             }
-//            agentClient.stop()
         }
     }
 

@@ -1,6 +1,6 @@
 package com.cacaosd.droidmind.agent.client
 
-import ai.koog.agents.utils.use
+import ai.koog.utils.io.use
 import com.cacaosd.droidmind.domain.AgentClient
 
 class DefaultAgentClient(
@@ -17,6 +17,6 @@ class DefaultAgentClient(
     override suspend fun stop() {
         // FIXME: This is buggy.
         // https://github.com/JetBrains/koog/issues/569
-        agent.reportProblem(IllegalStateException("AgentClient is stopped."))
+        agent.close()
     }
 }

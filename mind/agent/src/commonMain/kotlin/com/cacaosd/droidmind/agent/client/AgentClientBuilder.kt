@@ -1,8 +1,9 @@
 package com.cacaosd.droidmind.agent.client
 
 import ai.koog.agents.core.agent.AIAgent
-import ai.koog.agents.core.agent.AIAgent.FeatureContext
+import ai.koog.agents.core.agent.GraphAIAgent
 import ai.koog.agents.core.agent.config.AIAgentConfig
+import ai.koog.agents.core.agent.entity.AIAgentGraphStrategy
 import ai.koog.agents.core.agent.entity.AIAgentStrategy
 import ai.koog.agents.core.agent.singleRunStrategy
 import ai.koog.agents.core.tools.ToolRegistry
@@ -11,6 +12,7 @@ import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.model.PromptExecutor
 import ai.koog.prompt.llm.LLModel
 import ai.koog.prompt.params.LLMParams
+import kotlinx.datetime.Clock
 
 /**
  * A builder for constructing an [AIAgent] with a fluent API.
@@ -29,8 +31,8 @@ class AgentClientBuilder private constructor(
     private var systemPrompt: String? = null
     private var additionalPrompts: MutableList<PromptBuilder.() -> Unit> = mutableListOf()
     private var toolRegistry: ToolRegistry = ToolRegistry.EMPTY
-    private var strategy: AIAgentStrategy<String, String> = singleRunStrategy()
-    private var features: FeatureContext.() -> Unit = {}
+    private var strategy: AIAgentGraphStrategy<String, String> = singleRunStrategy()
+    private var features: GraphAIAgent.FeatureContext.() -> Unit = {}
     private var maxIterations: Int = DEFAULT_MAX_ITERATIONS
     private var temperature: Double = DEFAULT_TEMPERATURE
 
@@ -80,7 +82,7 @@ class AgentClientBuilder private constructor(
      * @param strategy The strategy defining how the agent will run (e.g., single run, loop).
      * @return The builder instance for chaining.
      */
-    fun withStrategy(strategy: AIAgentStrategy<String, String>): AgentClientBuilder {
+    fun withStrategy(strategy: AIAgentGraphStrategy<String, String>): AgentClientBuilder {
         this.strategy = strategy
         return this
     }
@@ -162,7 +164,7 @@ class AgentClientBuilder private constructor(
      * @param block A lambda with [FeatureContext] as its receiver to configure features.
      * @return The builder instance for chaining.
      */
-    fun withFeatures(block: FeatureContext.() -> Unit): AgentClientBuilder {
+    fun withFeatures(block: GraphAIAgent.FeatureContext.() -> Unit): AgentClientBuilder {
         this.features = block
         return this
     }
@@ -183,7 +185,8 @@ class AgentClientBuilder private constructor(
             agentConfig = AIAgentConfig(
                 prompt = prompt(
                     "chat",
-                    params = LLMParams(temperature = temperature, toolChoice = LLMParams.ToolChoice.Auto)
+                    params = LLMParams(temperature = temperature, toolChoice = LLMParams.ToolChoice.Auto),
+                    clock = Clock.System,
                 ) {
                     system(finalSystemPrompt)
                     additionalPrompts.forEach { it() }

@@ -1,6 +1,7 @@
 package com.cacaosd.droidmind.adb.device_controller
 
 import com.android.ddmlib.AndroidDebugBridge
+import com.cacaosd.droidmind.core.logging.Logger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
@@ -10,7 +11,7 @@ fun getAdb(): AndroidDebugBridge = runBlocking {
 
     val androidHome = System.getenv("ANDROID_HOME")
     if (androidHome.isNullOrEmpty()) error("ANDROID_HOME is not set")
-    println("ANDROID_HOME: $androidHome")
+    Logger.debug("ANDROID_HOME: $androidHome")
 
     AndroidDebugBridge.getBridge() ?: createAdb(androidHome)
 }

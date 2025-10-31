@@ -1,21 +1,24 @@
 package com.cacaosd.droidmind.adb.device_controller
 
-import com.cacaosd.droidmind.adb.AppConfigManager
+import com.cacaosd.droidmind.core.AppConfigManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import java.time.Clock
+import java.time.Instant
 import kotlin.test.Test
-import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
 class AndroidDeviceControllerTest {
 
+    private val fixedClock = Clock.fixed(Instant.parse("2023-10-01T00:00:00Z"), Clock.systemUTC().zone)
     private val androidDeviceController = getAndroidDeviceController(
         AppConfigManager(
             appName = "mcpformobile",
             appVersion = "0.0.1",
             packageName = "com.cacaosd.droidmind",
+            clock = fixedClock
         ),
-        clock = Clock.System
+        clock = fixedClock
     ) as AndroidDeviceController
 
     @Test

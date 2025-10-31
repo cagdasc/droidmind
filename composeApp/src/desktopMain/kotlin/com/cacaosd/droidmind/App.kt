@@ -3,7 +3,7 @@ package com.cacaosd.droidmind
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
-import com.cacaosd.droidmind.adb.AppConfigManager
+import com.cacaosd.droidmind.core.AppConfigManager
 import com.cacaosd.droidmind.di.featureModule
 import com.cacaosd.droidmind.di.mainModule
 import com.cacaosd.droidmind.feature.ChatScreenBranch

@@ -31,6 +31,12 @@ Example prompt:
     Find search button in toolbar and click it. Type "First video in YouTube" and send done event. Once you get search 
     results get list in screen and click first element. After that tell me what did you do and what you see in the screen.
 
+    1. Find search button in toolbar and click it. Then verify "Search YouTube" text.
+    
+    2. Type "First video in YouTube" and send done event. Then verify you see "Me at the zoo" video
+    
+    3. Click "Me at the zoo" video. Then verify you seee "Me at zoo" title and publisher name is "jawed"
+
 See demo video (or go [demo](demo) directory):
 [![Video thumbnail](demo/demo_cover.png)](https://github.com/user-attachments/assets/85943f11-f6da-4352-9e14-4c15f83ecedc)
 

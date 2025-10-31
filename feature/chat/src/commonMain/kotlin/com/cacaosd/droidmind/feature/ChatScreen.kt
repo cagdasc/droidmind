@@ -36,7 +36,6 @@ fun ChatScreen(
         ) {
             ScenarioInputContainer(chatScreenUiState, onAction)
             ChatContainer(chatScreenUiState, onAction)
-            TokenInfoBox(chatScreenUiState)
         }
     }
 }
@@ -46,54 +45,59 @@ private fun RowScope.ChatContainer(chatScreenUiState: ChatScreenUiState, onActio
     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(
-                AppTheme.sizes.medium
-            )
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)
         ) {
-            GenericDropdown(
-                items = chatScreenUiState.deviceDataList,
-                selectedItem = chatScreenUiState.selectedDevice,
-                onItemSelected = { device ->
-                    onAction(ChatScreenAction.DeviceSelected(device))
-                },
-                label = "Device",
-                placeholder = "Select device",
-                itemText = { it.name },
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)) {
+                GenericDropdown(
+                    items = chatScreenUiState.deviceDataList,
+                    selectedItem = chatScreenUiState.selectedDevice,
+                    onItemSelected = { device ->
+                        onAction(ChatScreenAction.DeviceSelected(device))
+                    },
+                    label = "Device",
+                    placeholder = "Select device",
+                    itemText = { it.name },
+                )
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)
-            ) {
-                DeviceSpecBox(
-                    icon = Icons.Filled.BatteryFull,
-                    spec = "Battery",
-                    value = "${chatScreenUiState.selectedDevice?.batteryLevel ?: "--"}%"
-                )
-                DeviceSpecBox(
-                    icon = Icons.Filled.PhoneAndroid,
-                    spec = "Screen",
-                    value = chatScreenUiState.selectedDevice?.let { it.screenSize ?: "Unknown size" } ?: "--"
-                )
-                DeviceSpecBox(
-                    icon = Icons.Filled.Api,
-                    spec = "API Level",
-                    value = chatScreenUiState.selectedDevice?.osVersion ?: "--"
-                )
+                if (chatScreenUiState.installedApps.isNotEmpty()) {
+                    GenericDropdown(
+                        items = chatScreenUiState.installedApps,
+                        selectedItem = chatScreenUiState.selectedApp,
+                        onItemSelected = { app ->
+                            onAction(ChatScreenAction.AppSelected(app))
+                        },
+                        label = "App",
+                        placeholder = "Select an app",
+                        itemText = { it.packageName },
+                    )
+                }
             }
-        }
 
-        if (chatScreenUiState.installedApps.isNotEmpty()) {
-            GenericDropdown(
-                items = chatScreenUiState.installedApps,
-                selectedItem = chatScreenUiState.selectedApp,
-                onItemSelected = { app ->
-                    onAction(ChatScreenAction.AppSelected(app))
-                },
-                label = "App",
-                placeholder = "Select an app",
-                itemText = { it.packageName },
-            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)
+                ) {
+                    DeviceSpecBox(
+                        icon = Icons.Filled.BatteryFull,
+                        spec = "Battery",
+                        value = "${chatScreenUiState.selectedDevice?.batteryLevel ?: "--"}%"
+                    )
+                    DeviceSpecBox(
+                        icon = Icons.Filled.PhoneAndroid,
+                        spec = "Screen",
+                        value = chatScreenUiState.selectedDevice?.let { it.screenSize ?: "Unknown size" } ?: "--"
+                    )
+                    DeviceSpecBox(
+                        icon = Icons.Filled.Api,
+                        spec = "API Level",
+                        value = chatScreenUiState.selectedDevice?.osVersion ?: "--"
+                    )
+                }
+
+                TokenInfoBox(chatScreenUiState)
+            }
         }
 
         Column(
@@ -223,12 +227,13 @@ private fun RowScope.ScenarioInputContainer(
 }
 
 @Composable
-private fun RowScope.TokenInfoBox(chatScreenUiState: ChatScreenUiState) {
-    Column(
-        modifier = Modifier.weight(.3f).background(
+private fun TokenInfoBox(chatScreenUiState: ChatScreenUiState) {
+    Row(
+        modifier = Modifier.background(
             color = MaterialTheme.colorScheme.surfaceVariant,
             shape = MaterialTheme.shapes.small
         ).padding(AppTheme.sizes.medium),
+        horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)
     ) {
         Text(
             text = "Tokens",
