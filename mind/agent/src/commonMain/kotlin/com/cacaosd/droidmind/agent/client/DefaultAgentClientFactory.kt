@@ -113,7 +113,12 @@ class DefaultAgentClientFactory(
             }
 
             onToolCallCompleted { context ->
-                // TODO: Handle tool call result if needed
+                agentEventFlow.emit(
+                    McpMessage.Response.ToolResult(
+                        toolName = context.tool.name,
+                        content = context.result.toString()
+                    )
+                )
             }
         }
     }
