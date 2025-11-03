@@ -64,6 +64,10 @@ android-tools-sdklib = { module = "com.android.tools:sdklib", version.ref = "and
 android-tools-common = { module = "com.android.tools:common", version.ref = "android-tools-version" }
 android-tools-sdk-common = { module = "com.android.tools:sdk-common", version.ref = "android-tools-version" }
 
+# multiplatform
+platform-coroutines = { module = "com.cacaosd.platform:coroutines" }
+platform-coroutines-di = { module = "com.cacaosd.platform:coroutines-di" }
+
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

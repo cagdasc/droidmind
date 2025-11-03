@@ -1,11 +1,13 @@
 package com.cacaosd.droidmind.adb.verifier
 
 import com.cacaosd.droidmind.adb.device_controller.DeviceController
-import com.cacaosd.droidmind.core.coroutine.DispatcherProvider
+import com.cacaosd.droidmind.adb.layout_optimizer.Element
+import com.cacaosd.droidmind.adb.layout_optimizer.flattenDfs
+import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
 import kotlinx.coroutines.withContext
 
 class UiTextVerifier(
-    private val dispatcherProvider: DispatcherProvider,
+    private val platformDispatchers: PlatformDispatchers,
     private val deviceController: DeviceController
 ) : Verifier {
     override suspend fun verify(
@@ -13,16 +15,29 @@ class UiTextVerifier(
         packageName: String,
         expectation: Expectation
     ): VerificationResult {
-        val uiText = withContext(dispatcherProvider.IO) {
-            deviceController.getUiDump(packageName, serial)
-        }
+        val uiHierarchy = withContext(platformDispatchers.io) {
+            deviceController.getOptimisedUiHierarchy(packageName, serial)
+        }?.let { optimisedHierarchy ->
+            withContext(platformDispatchers.default) {
+                optimisedHierarchy.flattenDfs { it.type is Element.TextBased }
+            }
+        } ?: return VerificationResult(
+            false,
+            "Failed to retrieve UI hierarchy for package '$packageName' on device '$serial'."
+        )
 
-        val passed = uiText.contains(expectation.value)
-        val message = if (passed) {
-            "Expectation met: UI contains '${expectation.value}'"
-        } else {
-            "Expectation not met: UI does not contain '${expectation.value}'"
+        val result = withContext(platformDispatchers.default) {
+            uiHierarchy.filter {
+                it.text?.contains(expectation.value) ?: false
+            }
         }
-        return VerificationResult(passed, message)
+        val hasMatch = result.isNotEmpty()
+
+        val message = if (hasMatch) {
+            "UiText-Expectation met: UI contains '${expectation.value}'"
+        } else {
+            "UiText-Expectation not met: UI does not contain '${expectation.value}'"
+        }
+        return VerificationResult(passed = hasMatch, message = message)
     }
 }

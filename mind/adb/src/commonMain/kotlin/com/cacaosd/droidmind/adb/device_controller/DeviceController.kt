@@ -1,6 +1,8 @@
 package com.cacaosd.droidmind.adb.device_controller
 
+import com.cacaosd.droidmind.adb.layout_optimizer.OptimisedHierarchy
 import com.cacaosd.droidmind.core.AppConfigManager
+import java.io.File
 import java.time.Clock
 
 interface DeviceController {
@@ -11,7 +13,9 @@ interface DeviceController {
 
     suspend fun launchApp(packageName: String, serial: String?): String
 
-    suspend fun getUiDump(packageName: String,serial: String?): String
+    suspend fun getUiDumpFile(packageName: String, serial: String?): File?
+
+    suspend fun getOptimisedUiHierarchy(packageName: String, serial: String?): OptimisedHierarchy?
 
     suspend fun inputText(text: String, serial: String?): String
 

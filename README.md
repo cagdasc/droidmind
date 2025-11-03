@@ -35,7 +35,7 @@ Example prompt:
     
     2. Type "First video in YouTube" and send done event. Then verify you see "Me at the zoo" video
     
-    3. Click "Me at the zoo" video. Then verify you seee "Me at zoo" title and publisher name is "jawed"
+    3. Find item which is "Me at the zoo" and click it. Then verify you seee "Me at zoo" title and publisher name is "jawed"
 
 See demo video (or go [demo](demo) directory):
 [![Video thumbnail](demo/demo_cover.png)](https://github.com/user-attachments/assets/85943f11-f6da-4352-9e14-4c15f83ecedc)

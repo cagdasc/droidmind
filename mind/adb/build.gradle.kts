@@ -12,6 +12,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core"))
             implementation(project(":shared"))
+            implementation(libs.platform.coroutines)
 
             implementation(libs.xmlutil.core)
             implementation(libs.xmlutil.serialization)

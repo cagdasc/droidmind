@@ -12,7 +12,6 @@ kotlin {
             implementation(libs.logging.kotlin)
             implementation(libs.logging.logback.classic)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.kotlinx.coroutines.core)
         }
 
         commonTest.dependencies {
@@ -21,7 +20,6 @@ kotlin {
 
         val desktopMain by getting {
             dependencies {
-                implementation(libs.kotlinx.coroutines.swing)
             }
         }
 

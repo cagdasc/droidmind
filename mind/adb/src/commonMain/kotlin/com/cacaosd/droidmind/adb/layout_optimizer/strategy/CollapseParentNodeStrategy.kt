@@ -16,6 +16,8 @@ class CollapseParentNodeStrategy : NodeOptimisationStrategy {
                 || resourceId.isNotBlank()
                 || contentDesc.isNotBlank()
                 || clickable
+                || longClickable
+                || checkable
                 || focusable
                 || !enabled
 

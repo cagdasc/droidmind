@@ -9,6 +9,7 @@ import com.cacaosd.droidmind.di.mainModule
 import com.cacaosd.droidmind.feature.ChatScreenBranch
 import com.cacaosd.droidmind.feature.ChatViewModel
 import com.cacaosd.droidmind.ui_theme.AppTheme
+import com.cacaosd.platform.coroutines.di.platformCoroutines
 import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -16,6 +17,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Preview
 fun App() {
     KoinApplication(application = {
+        platformCoroutines()
         modules(mainModule, featureModule)
         val appConfigManager = koin.get<AppConfigManager>()
         appConfigManager.initializeApp()

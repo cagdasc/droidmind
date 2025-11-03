@@ -26,8 +26,8 @@ data class Node(
     val focusable: Boolean = false,
     val focused: Boolean = false,
     val scrollable: Boolean = false,
-    @SerialName("long-clickable") val longClickable: String = "",
-    val password: String = "",
+    @SerialName("long-clickable") val longClickable: Boolean = false,
+    val password: Boolean = false,
     val selected: Boolean = false,
     val bounds: String = "",
     @SerialName("node") val children: List<Node> = emptyList()

@@ -31,7 +31,7 @@ class LayoutOptimiser(private val xml: XML, private val nodeOptimisationStrategy
         val children = children.mapNotNull { it.toUiElement() }
 
         return UiElement(
-            type = className.substringAfterLast('.'),
+            type = elementTypeFromNode(this),
             text = text.takeIf { it.isNotBlank() },
             contentDescription = contentDesc.takeIf { it.isNotBlank() },
             bounds = rect,
@@ -47,4 +47,33 @@ class LayoutOptimiser(private val xml: XML, private val nodeOptimisationStrategy
         val (left, top, right, bottom) = match.destructured
         return Rect(left.toInt(), top.toInt(), right.toInt(), bottom.toInt())
     }
+
+    private fun elementTypeFromNode(node: Node): Element {
+        return when {
+            node.className.contains("Button", ignoreCase = true) -> Element.TextBased.Button
+            node.className.contains("EditText", ignoreCase = true) -> Element.TextBased.InputField
+            node.className.contains("TextView", ignoreCase = true) -> Element.TextBased.Label
+            node.className.contains("ViewGroup", ignoreCase = true) -> Element.TextBased.Label
+            node.className.contains("View", ignoreCase = true) -> Element.TextBased.Label
+            containers.any { it == node.className } -> Element.Container
+            else -> {
+                val isInteractable = node.clickable || node.checkable || node.longClickable
+                if (isInteractable) {
+                    Element.TextBased.Button
+                } else {
+                    Element.Unknown
+                }
+            }
+        }
+    }
+
+    private val containers = listOf(
+        "androidx.compose.ui.platform.ComposeView",
+        "android.view.ViewGroup",
+        "android.widget.FrameLayout",
+        "android.widget.RelativeLayout",
+        "android.widget.LinearLayout",
+        "android.widget.ScrollView",
+        "android.support.v7.widget.RecyclerView",
+    )
 }

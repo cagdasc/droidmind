@@ -22,6 +22,9 @@ kotlin {
             implementation(project(":mind:agent"))
             implementation(project(":mind:domain"))
 
+            implementation(libs.platform.coroutines)
+            implementation(libs.platform.coroutines.di)
+
             implementation(libs.ai.koog)
 
             implementation(libs.koin.core)

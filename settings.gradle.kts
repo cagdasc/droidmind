@@ -41,3 +41,19 @@ include(":mind:agent")
 include(":mind:domain")
 include(":shared")
 include(":interaction-engine")
+
+includeBuild("multiplatform-shared") {
+    dependencySubstitution {
+        substitute(module("com.cacaosd.platform:core"))
+            .using(project(":platform:core"))
+
+        substitute(module("com.cacaosd.platform:core-di"))
+            .using(project(":platform:core-di"))
+
+        substitute(module("com.cacaosd.platform:coroutines"))
+            .using(project(":platform:coroutines"))
+
+        substitute(module("com.cacaosd.platform:coroutines-di"))
+            .using(project(":platform:coroutines-di"))
+    }
+}

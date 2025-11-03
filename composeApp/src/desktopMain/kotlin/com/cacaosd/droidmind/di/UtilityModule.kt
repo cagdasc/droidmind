@@ -11,8 +11,6 @@ import com.cacaosd.droidmind.agent.toolExecutionStrategy
 import com.cacaosd.droidmind.agent.tools.DeviceControllerTools
 import com.cacaosd.droidmind.agent.tools.TestCaseVerifierTools
 import com.cacaosd.droidmind.core.AppConfigManager
-import com.cacaosd.droidmind.core.coroutine.DispatcherProvider
-import com.cacaosd.droidmind.core.coroutine.JvmDispatcherProvider
 import com.cacaosd.droidmind.domain.McpMessage
 import com.cacaosd.droidmind.localProperties
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -26,7 +24,6 @@ val utilityModule = module {
     single<MutableSharedFlow<McpMessage>>(qualifier = AgentMessageFlowQualifier) { MutableSharedFlow() }
     single<Properties> { localProperties }
     single<Clock> { Clock.systemUTC() }
-    single<DispatcherProvider> { JvmDispatcherProvider() }
 }
 
 val toolsModule = module {
@@ -46,7 +43,7 @@ val toolsModule = module {
     } bind DeviceController::class
     single<Verifier> {
         UiTextVerifier(
-            dispatcherProvider = get(),
+            platformDispatchers = get(),
             deviceController = get<DeviceController>(qualifier = AndroidDeviceControllerQualifier)
         )
     }

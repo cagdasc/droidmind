@@ -5,6 +5,7 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.cacaosd.droidmind.adb.DeviceConstants
 import com.cacaosd.droidmind.adb.layout_optimizer.LayoutOptimiser
+import com.cacaosd.droidmind.adb.layout_optimizer.OptimisedHierarchy
 import com.cacaosd.droidmind.adb.layout_optimizer.getLayoutOptimiser
 import com.cacaosd.droidmind.core.AppConfigManager
 import com.cacaosd.droidmind.shared.extension.asFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 
@@ -92,8 +94,8 @@ class AndroidDeviceController(
         "Launched $packageName"
     }
 
-    override suspend fun getUiDump(packageName: String, serial: String?): String = withContext(Dispatchers.IO) {
-        val device = getDevice(serial) ?: return@withContext "Device not found"
+    override suspend fun getUiDumpFile(packageName: String, serial: String?): File? = withContext(Dispatchers.IO) {
+        val device = getDevice(serial) ?: return@withContext null
 
         val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.millis())
         val xmlName = "uidump_${packageName}_$timestamp.xml"
@@ -109,11 +111,16 @@ class AndroidDeviceController(
         )
         delay(250) // Wait for the dump to be created
 
-        val localDumpFile = appConfigManager.getUiDumpFile(filename = xmlName).toFile()
-        device.pullFile(remotePath, localDumpFile.absolutePath)
-        device.executeShellCommand("rm $remotePath", CollectingReceiver())
+        appConfigManager.getUiDumpFile(filename = xmlName).toFile().apply {
+            device.pullFile(remotePath, absolutePath)
+            device.executeShellCommand("rm $remotePath", CollectingReceiver())
+        }
+    }
 
-        layoutOptimiser.optimise(localDumpFile).toString()
+    override suspend fun getOptimisedUiHierarchy(packageName: String, serial: String?): OptimisedHierarchy? {
+        val uiDumpFile =
+            getUiDumpFile(packageName = packageName, serial = serial) ?: error("Failed to get UI dump file")
+        return layoutOptimiser.optimise(uiDumpFile)
     }
 
     override suspend fun inputText(text: String, serial: String?): String = withContext(Dispatchers.IO) {
