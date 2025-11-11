@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
+import com.cacaosd.droidmind.feature.composable.ActiveLayoutRenderer
 import com.cacaosd.droidmind.feature.composable.ChipFlowRow
 import com.cacaosd.droidmind.feature.composable.GenericDropdown
 import com.cacaosd.droidmind.ui_theme.AppTheme
@@ -36,6 +37,7 @@ fun ChatScreen(
         ) {
             ScenarioInputContainer(chatScreenUiState, onAction)
             ChatContainer(chatScreenUiState, onAction)
+            DevicePreview(modifier = Modifier.weight(.7f), chatScreenUiState)
         }
     }
 }
@@ -74,7 +76,6 @@ private fun RowScope.ChatContainer(chatScreenUiState: ChatScreenUiState, onActio
                 }
             }
 
-
             Column(verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)
@@ -87,7 +88,7 @@ private fun RowScope.ChatContainer(chatScreenUiState: ChatScreenUiState, onActio
                     DeviceSpecBox(
                         icon = Icons.Filled.PhoneAndroid,
                         spec = "Screen",
-                        value = chatScreenUiState.selectedDevice?.let { it.screenSize ?: "Unknown size" } ?: "--"
+                        value = chatScreenUiState.selectedDevice?.let { "${it.screenWidth}x${it.screenHeight}" } ?: "--"
                     )
                     DeviceSpecBox(
                         icon = Icons.Filled.Api,
@@ -331,6 +332,29 @@ private fun ChatBubble(message: MessageBubble) {
     }
 }
 
+@Composable
+private fun DevicePreview(modifier: Modifier, chatScreenUiState: ChatScreenUiState) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.medium),
+        contentAlignment = Alignment.Center
+    ) {
+        if (chatScreenUiState.rootUiElement == null) {
+            Text(
+                text = "Device Preview",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+        } else {
+            ActiveLayoutRenderer(
+                modifier = Modifier.fillMaxSize().padding(AppTheme.sizes.medium),
+                rootElement = chatScreenUiState.rootUiElement
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 internal fun ChatScreenPreview() {
@@ -338,10 +362,10 @@ internal fun ChatScreenPreview() {
         ChatScreen(
             chatScreenUiState = ChatScreenUiState(
                 deviceDataList = listOf(
-                    DeviceData("Device 1", "12345", 11, "1080x2400", "85"),
-                    DeviceData("Device 2", "67890", 12, "1080x2340", "75")
+                    DeviceData("Device 1", "12345", 11, 1080, 2400, "85"),
+                    DeviceData("Device 2", "67890", 12, 1080, 2400, "75")
                 ),
-                selectedDevice = DeviceData("Device 1", "12345", 12, "1080x2400", "85"),
+                selectedDevice = DeviceData("Device 1", "12345", 12, 1080, 2400, "85"),
                 installedApps = listOf(InstalledApp("com.example.app1"), InstalledApp("com.example.app2")),
                 selectedApp = InstalledApp("com.example.app1"),
                 prompt = "",

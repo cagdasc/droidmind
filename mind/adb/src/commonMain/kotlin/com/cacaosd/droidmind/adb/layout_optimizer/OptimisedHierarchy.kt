@@ -1,7 +1,11 @@
 package com.cacaosd.droidmind.adb.layout_optimizer
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class OptimisedHierarchy(val rotation: ScreenRotation, val root: UiElement)
 
+@Serializable
 enum class ScreenRotation(val value: Int, val description: String) {
     PORTRAIT(0, "Portrait (0°)"),
     LANDSCAPE(1, "Landscape (90°)"),
@@ -17,6 +21,7 @@ enum class ScreenRotation(val value: Int, val description: String) {
     override fun toString(): String = description
 }
 
+@Serializable
 data class UiElement(
     val type: Element,
     val text: String?,
@@ -28,18 +33,32 @@ data class UiElement(
     val children: List<UiElement> = emptyList()
 )
 
+@Serializable
 sealed class Element {
+
+    @Serializable
     sealed class TextBased : Element() {
+        @Serializable
         data object Label : TextBased()
+
+        @Serializable
         data object InputField : TextBased()
+
+        @Serializable
         data object Button : TextBased()
+
+        @Serializable
         data object ViewGroup : TextBased()
     }
 
+    @Serializable
     data object Container : Element()
+
+    @Serializable
     object Unknown : Element()
 }
 
+@Serializable
 data class Rect(val left: Int, val top: Int, val right: Int, val bottom: Int)
 
 fun OptimisedHierarchy.flattenBfs(

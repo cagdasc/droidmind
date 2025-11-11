@@ -4,5 +4,8 @@ interface Verifier {
     suspend fun verify(serial: String, packageName: String, expectation: Expectation): VerificationResult
 }
 
-data class Expectation(val type: String, val value: String)
+sealed class Expectation(open val value: String) {
+    data class Text(override val value: String) : Expectation(value)
+}
+
 data class VerificationResult(val passed: Boolean, val message: String)
