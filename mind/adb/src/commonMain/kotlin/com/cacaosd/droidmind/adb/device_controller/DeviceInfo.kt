@@ -5,5 +5,7 @@ data class DeviceInfo(
     val serial: String,
     val batteryLevel: Int,
     val osVersion: String,
-    val dimensions: String? = null
-)
+    val dimensions: Dimensions
+) {
+    data class Dimensions(val width: Int, val height: Int)
+}

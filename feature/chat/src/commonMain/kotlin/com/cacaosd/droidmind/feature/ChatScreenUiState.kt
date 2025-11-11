@@ -1,5 +1,6 @@
 package com.cacaosd.droidmind.feature
 
+import com.cacaosd.droidmind.adb.layout_optimizer.UiElement
 import java.time.Instant
 import java.util.*
 
@@ -15,13 +16,15 @@ data class ChatScreenUiState(
     val inputTokensCount: String = "0",
     val outputTokensCount: String = "0",
     val totalTokensCount: String = "0",
+    val rootUiElement: UiElement? = null,
 )
 
 data class DeviceData(
     val name: String,
     val serial: String,
     val batteryLevel: Int = 0,
-    val screenSize: String? = null,
+    val screenWidth: Int,
+    val screenHeight: Int,
     val osVersion: String = "",
 ) : ChipItem {
     override val label: String

@@ -1,14 +1,16 @@
 package com.cacaosd.droidmind.agent.client
 
+import ai.koog.agents.core.agent.AIAgent
 import ai.koog.utils.io.use
 import com.cacaosd.droidmind.domain.AgentClient
 
 class DefaultAgentClient(
-    builder: AgentClientBuilder
+    private val builder: AgentClientBuilder
 ) : AgentClient {
-    private val agent = builder.build()
+    private lateinit var agent: AIAgent<String, String>
 
     override suspend fun executePrompt(prompt: String) {
+        agent = builder.build()
         agent.use {
             it.run(prompt)
         }

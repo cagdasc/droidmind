@@ -116,7 +116,7 @@ class DefaultAgentClientFactory(
                 agentEventFlow.emit(
                     McpMessage.Response.ToolResult(
                         toolName = context.tool.name,
-                        content = context.result.toString()
+                        content = context.result
                     )
                 )
             }

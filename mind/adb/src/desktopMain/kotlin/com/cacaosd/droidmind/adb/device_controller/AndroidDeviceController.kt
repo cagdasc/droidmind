@@ -45,7 +45,6 @@ class AndroidDeviceController(
     override suspend fun getDevices(): List<DeviceInfo> {
         return adb.devices.map { device ->
             val batteryLevel = device.battery.asFlow().catch { emit(-1) }.firstOrNull() ?: -1
-
             DeviceInfo(
                 name = device.name,
                 serial = device.serialNumber,
@@ -150,11 +149,13 @@ class AndroidDeviceController(
         receiver.result
     }
 
-    private suspend fun getDimensions(serial: String?): String? {
+    private suspend fun getDimensions(serial: String?): DeviceInfo.Dimensions {
         val deviceSize = deviceSize(serial)
         val regex = Regex("""\b(\d+x\d+)\b""")
-        val match = regex.find(deviceSize)
-        return match?.groups?.get(1)?.value
+        val size = regex.find(deviceSize)?.groups[1]?.value
+        return size?.split("x")?.let {
+            DeviceInfo.Dimensions(width = it[0].toInt(), height = it[1].toInt())
+        } ?: DeviceInfo.Dimensions(0, 0)
     }
 
     override suspend fun screenshot(serial: String?): String = withContext(Dispatchers.IO) {

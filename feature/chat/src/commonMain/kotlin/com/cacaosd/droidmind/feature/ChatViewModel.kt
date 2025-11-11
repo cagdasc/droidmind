@@ -5,7 +5,11 @@ package com.cacaosd.droidmind.feature
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cacaosd.droidmind.adb.device_controller.DeviceController
+import com.cacaosd.droidmind.adb.layout_optimizer.OptimisedHierarchy
+import com.cacaosd.droidmind.agent.tools.description.DeviceControllerToolsConstant
+import com.cacaosd.droidmind.agent.tools.description.TestCaseVerifierToolsConstant
 import com.cacaosd.droidmind.domain.McpMessage
+import com.cacaosd.droidmind.domain.session.ScenarioExecution
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ticker
@@ -79,13 +83,14 @@ class ChatViewModel(
             .onEach {
                 val devices = withContext(Dispatchers.IO) { deviceController.getDevices() }
                 _chatScreenUiState.update { state ->
-                    state.copy(deviceDataList = devices.map {
+                    state.copy(deviceDataList = devices.map { device ->
                         DeviceData(
-                            name = it.name,
-                            serial = it.serial,
-                            batteryLevel = it.batteryLevel,
-                            screenSize = it.dimensions,
-                            osVersion = it.osVersion
+                            name = device.name,
+                            serial = device.serial,
+                            batteryLevel = device.batteryLevel,
+                            screenWidth = device.dimensions.width,
+                            screenHeight = device.dimensions.height,
+                            osVersion = device.osVersion
                         )
                     })
                 }
@@ -98,53 +103,85 @@ class ChatViewModel(
                 val serial = _chatScreenUiState.value.selectedDevice?.serial
                 val listOfApps = withContext(Dispatchers.IO) { deviceController.listInstalledPackages(serial) }
                 _chatScreenUiState.update { state ->
-                    state.copy(installedApps = listOfApps.sorted().map { InstalledApp(packageName = it) })
+                    state.copy(installedApps = listOfApps.sortedDescending().map { InstalledApp(packageName = it) })
                 }
             }.launchIn(viewModelScope)
     }
 
+    private fun mapMcpMessageRequest(mcpMessageRequest: McpMessage.Request): MessageBubble.Request {
+        return when (mcpMessageRequest) {
+            is McpMessage.Request.User -> {
+                MessageBubble.request(
+                    sender = MessageOwner.User,
+                    content = mcpMessageRequest.message
+                )
+            }
+
+            is McpMessage.Request.Tool -> {
+                MessageBubble.request(
+                    sender = MessageOwner.Tool(toolName = mcpMessageRequest.toolName),
+                    content = mcpMessageRequest.content
+                )
+            }
+        }
+    }
+
+    private fun mapMcpMessageResponse(mcpMessageResponse: McpMessage.Response): MessageBubble.Response? {
+        return when (mcpMessageResponse) {
+            is McpMessage.Response.Assistant -> {
+                MessageBubble.response(
+                    sender = MessageOwner.Assistant,
+                    content = mcpMessageResponse.content.trimIndent()
+                )
+            }
+
+            is McpMessage.Response.AssistantWithError -> {
+                MessageBubble.response(
+                    sender = MessageOwner.Assistant,
+                    content = "Error happened while executing the prompt",
+                    throwable = mcpMessageResponse.throwable
+                )
+            }
+
+            is McpMessage.Response.Metadata.Token -> {
+                _chatScreenUiState.update { state ->
+                    state.copy(
+                        inputTokensCount = numberFormat.format(mcpMessageResponse.inputTokensCount),
+                        outputTokensCount = numberFormat.format(mcpMessageResponse.outputTokensCount),
+                        totalTokensCount = numberFormat.format(mcpMessageResponse.totalTokensCount)
+                    )
+                }
+                null
+            }
+
+            is McpMessage.Response.ToolResult -> {
+                handleToolResult(mcpMessageResponse)
+
+                MessageBubble.response(
+                    sender = MessageOwner.Assistant,
+                    content = mcpMessageResponse.content.toString(),
+                ).takeIf { mcpMessageResponse.toolName == TestCaseVerifierToolsConstant.VERIFY_UI_TEXT_TOOL_NAME }
+            }
+        }
+    }
+
+    private fun handleToolResult(mcpMessageResponse: McpMessage.Response.ToolResult) {
+        if (mcpMessageResponse.toolName == DeviceControllerToolsConstant.UI_DUMP_TOOL) {
+            val optimisedHierarchy = mcpMessageResponse.content as OptimisedHierarchy
+            _chatScreenUiState.update { state ->
+                state.copy(
+                    rootUiElement = optimisedHierarchy.root
+                )
+            }
+        }
+    }
+
     private fun collectAgentEvent() {
         mcpMessageFlow
-            .mapNotNull { event ->
-                when (event) {
-                    is McpMessage.Request.User -> MessageBubble.request(
-                        sender = MessageOwner.User,
-                        content = event.message
-                    )
-
-                    is McpMessage.Response.Assistant -> MessageBubble.response(
-                        sender = MessageOwner.Assistant,
-                        content = event.content.trimIndent()
-                    )
-
-                    is McpMessage.Request.Tool -> MessageBubble.request(
-                        sender = MessageOwner.Tool(toolName = event.toolName),
-                        content = event.content
-                    )
-
-                    is McpMessage.Response.AssistantWithError -> MessageBubble.response(
-                        sender = MessageOwner.Assistant,
-                        content = "Error happened while executing the prompt",
-                        throwable = event.throwable
-                    )
-
-                    is McpMessage.Response.Metadata.Token -> {
-                        _chatScreenUiState.update { state ->
-                            state.copy(
-                                inputTokensCount = numberFormat.format(event.inputTokensCount),
-                                outputTokensCount = numberFormat.format(event.outputTokensCount),
-                                totalTokensCount = numberFormat.format(event.totalTokensCount)
-                            )
-                        }
-                        null
-                    }
-
-                    is McpMessage.Response.ToolResult -> {
-                        MessageBubble.response(
-                            sender = MessageOwner.Assistant,
-                            content = event.content.orEmpty(),
-                        ).takeIf { event.toolName == "verify_ui_text" }
-                    }
+            .mapNotNull { mcpMessage ->
+                when (mcpMessage) {
+                    is McpMessage.Request -> mapMcpMessageRequest(mcpMessage)
+                    is McpMessage.Response -> mapMcpMessageResponse(mcpMessage)
                 }
             }
             .onEach { message ->
@@ -190,25 +227,15 @@ class ChatViewModel(
                 val userMessage = prompt
                 val serial = selectedDevice?.serial
                 val packageName = selectedApp?.packageName
+                val scenarioExecution = ScenarioExecution.builder()
+                    .deviceSerial(serial)
+                    .packageName(packageName)
+                    .scenario(userMessage)
+                    .expectation("Once you done with the scenario, explain what you have done.")
+                    .build()
 
-//                val scenario = if (serial == null || packageName == null) {
-//                    mcpMessageFlow.emit(
-//                        McpMessage.Response.Assistant(
-//                            content = "The device or app is not selected. So the scenario will be run in raw mode.",
-//                            finishReason = null
-//                        )
-//                    )
-//                    RAW_TEST_SCENARIO_TEMPLATE.format(userMessage).trimIndent()
-//                } else {
-//                    EXPLICIT_TEST_SCENARIO_TEMPLATE.format(serial, packageName, userMessage).trimIndent()
-//                } + RESULT_PREPARATION.trim()
-
-                if (serial != null && packageName != null) {
-                    val scenario = EXPLICIT_TEST_SCENARIO_TEMPLATE.format(serial, packageName, userMessage)
-                        .trimIndent() + RESULT_PREPARATION.trim()
-                    mcpMessageFlow.emit(McpMessage.Request.User(message = scenario)).also {
-                        scenarioExecutor.execute(deviceSerial = serial, packageName = packageName, prompt = scenario)
-                    }
+                mcpMessageFlow.emit(McpMessage.Request.User(message = userMessage)).also {
+                    scenarioExecutor.execute(request = scenarioExecution)
                 }
             }
         }
@@ -226,23 +253,5 @@ class ChatViewModel(
                 state.copy(executionState = ExecutionState.Idle)
             }
         }
-    }
-
-    companion object {
-        private const val EXPLICIT_TEST_SCENARIO_TEMPLATE = """
-            Device serial is %s
-            The application package name that will be launched is %s
-            The scenario to run: %s
-            """
-
-        private const val RAW_TEST_SCENARIO_TEMPLATE = """
-            The scenario to run: %s
-            """
-
-        private const val RESULT_PREPARATION = """
-            Once you done with the scenario, please:
-            Tell content-desc value of views that you clicked.
-            {VIEW_CLASS} - {CONTENT_DESC} - {X_COORDINATE}x{Y_COORDINATE}
-            """
     }
 }
