@@ -12,8 +12,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import com.cacaosd.droidmind.adb.layout_optimizer.Element
-import com.cacaosd.droidmind.adb.layout_optimizer.UiElement
+import com.cacaosd.droidmind.mind.layout.model.Element
+import com.cacaosd.droidmind.mind.layout.model.Rect
+import com.cacaosd.droidmind.mind.layout.model.UiElement
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.min
 
@@ -59,7 +60,7 @@ private fun ActiveLayoutRendererPreview() {
         type = Element.Container,
         text = null,
         contentDescription = null,
-        bounds = com.cacaosd.droidmind.adb.layout_optimizer.Rect(0, 0, 400, 800),
+        bounds = Rect(0, 0, 400, 800),
         clickable = false,
         focusable = false,
         enabled = true,
@@ -68,7 +69,7 @@ private fun ActiveLayoutRendererPreview() {
                 type = Element.TextBased.Button,
                 text = "Click Me",
                 contentDescription = "A button",
-                bounds = com.cacaosd.droidmind.adb.layout_optimizer.Rect(50, 100, 200, 150),
+                bounds = Rect(50, 100, 200, 150),
                 clickable = true,
                 focusable = true,
                 enabled = true
@@ -77,7 +78,7 @@ private fun ActiveLayoutRendererPreview() {
                 type = Element.TextBased.InputField,
                 text = "",
                 contentDescription = "Input Field",
-                bounds = com.cacaosd.droidmind.adb.layout_optimizer.Rect(50, 200, 350, 250),
+                bounds = Rect(50, 200, 350, 250),
                 clickable = true,
                 focusable = true,
                 enabled = true

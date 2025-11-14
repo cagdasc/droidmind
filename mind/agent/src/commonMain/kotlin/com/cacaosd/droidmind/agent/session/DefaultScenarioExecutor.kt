@@ -1,8 +1,8 @@
 package com.cacaosd.droidmind.agent.session
 
-import com.cacaosd.droidmind.adb.device_controller.DeviceController
 import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
+import com.cacaosd.droidmind.mind.device.controller.DeviceController
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 

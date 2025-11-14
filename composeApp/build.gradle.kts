@@ -15,10 +15,13 @@ kotlin {
         val desktopMain by getting
 
         commonMain.dependencies {
-            implementation(project(":core"))
+            implementation(project(":core:config"))
+            implementation(project(":core:logging"))
             implementation(project(":feature:chat"))
             implementation(project(":ui:theme"))
-            implementation(project(":mind:adb"))
+            implementation(project(":mind:device"))
+            implementation(project(":mind:layout"))
+            implementation(project(":mind:verifier"))
             implementation(project(":mind:agent"))
             implementation(project(":mind:domain"))
 

@@ -33,14 +33,16 @@ plugins {
 }
 
 include(":composeApp")
-include(":core")
+include(":core:config")
+include(":core:logging")
 include(":feature:chat")
 include(":ui:theme")
-include(":mind:adb")
 include(":mind:agent")
 include(":mind:domain")
-include(":shared")
 include(":interaction-engine")
+include(":mind:device")
+include(":mind:layout")
+include(":mind:verifier")
 
 includeBuild("multiplatform-shared") {
     dependencySubstitution {

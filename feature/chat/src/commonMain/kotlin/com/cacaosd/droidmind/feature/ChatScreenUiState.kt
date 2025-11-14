@@ -1,6 +1,6 @@
 package com.cacaosd.droidmind.feature
 
-import com.cacaosd.droidmind.adb.layout_optimizer.UiElement
+import com.cacaosd.droidmind.mind.layout.model.UiElement
 import java.time.Instant
 import java.util.*
 

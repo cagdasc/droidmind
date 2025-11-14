@@ -2,17 +2,19 @@ package com.cacaosd.droidmind.di
 
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.core.tools.reflect.asTools
-import com.cacaosd.droidmind.adb.device_controller.DeviceController
-import com.cacaosd.droidmind.adb.device_controller.getAndroidDeviceController
-import com.cacaosd.droidmind.adb.verifier.UiTextVerifier
-import com.cacaosd.droidmind.adb.verifier.Verifier
 import com.cacaosd.droidmind.agent.event.EventMapper
 import com.cacaosd.droidmind.agent.toolExecutionStrategy
 import com.cacaosd.droidmind.agent.tools.DeviceControllerTools
 import com.cacaosd.droidmind.agent.tools.TestCaseVerifierTools
-import com.cacaosd.droidmind.core.AppConfigManager
+import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.domain.McpMessage
 import com.cacaosd.droidmind.localProperties
+import com.cacaosd.droidmind.mind.device.controller.DeviceController
+import com.cacaosd.droidmind.mind.device.controller.getAndroidDeviceController
+import com.cacaosd.droidmind.mind.layout.optimizer.LayoutOptimiser
+import com.cacaosd.droidmind.mind.layout.optimizer.getLayoutOptimiser
+import com.cacaosd.droidmind.mind.verifier.Verifier
+import com.cacaosd.droidmind.verifier.verifier.UiTextVerifier
 import kotlinx.coroutines.flow.MutableSharedFlow
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -35,9 +37,12 @@ val toolsModule = module {
             clock = get()
         )
     }
+
+    single<LayoutOptimiser> { getLayoutOptimiser() }
     single(AndroidDeviceControllerQualifier) {
         getAndroidDeviceController(
             appConfigManager = get(),
+            layoutOptimiser = get(),
             clock = get()
         )
     } bind DeviceController::class

@@ -3,9 +3,9 @@ package com.cacaosd.droidmind.agent.tools
 import ai.koog.agents.core.tools.annotations.LLMDescription
 import ai.koog.agents.core.tools.annotations.Tool
 import ai.koog.agents.core.tools.reflect.ToolSet
-import com.cacaosd.droidmind.adb.verifier.Expectation
-import com.cacaosd.droidmind.adb.verifier.Verifier
 import com.cacaosd.droidmind.agent.tools.description.TestCaseVerifierToolsConstant
+import com.cacaosd.droidmind.mind.verifier.Expectation
+import com.cacaosd.droidmind.mind.verifier.Verifier
 
 @LLMDescription(TestCaseVerifierToolsConstant.TOOLSET_DESCRIPTION)
 class TestCaseVerifierTools(private val verifier: Verifier) : ToolSet {
