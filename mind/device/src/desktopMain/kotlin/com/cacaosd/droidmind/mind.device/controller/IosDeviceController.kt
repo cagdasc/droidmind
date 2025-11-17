@@ -87,20 +87,20 @@ class IosDeviceController(
 
     override suspend fun inputText(text: String, serial: String?): String {
         serial ?: error("Serial cannot be null for iOS devices")
-        iOSDeviceBridge.sendInput(text)
+        iOSDeviceBridge.sendInput(text, serial)
         return "Input sent: $text"
     }
 
     override suspend fun tap(x: Int, y: Int, serial: String?): String {
         serial ?: error("Serial cannot be null for iOS devices")
-        iOSDeviceBridge.tap(x, y)
+        iOSDeviceBridge.tap(x, y, serial)
         return "Tapped at ($x, $y)"
     }
 
     override suspend fun sendKeyEvent(key: String, serial: String?): String {
         serial ?: error("Serial cannot be null for iOS devices")
         val keyCode = keyEventMap[key.lowercase()] ?: error("Unsupported key event: $key")
-        iOSDeviceBridge.sendKeyEvent(keyCode)
+        iOSDeviceBridge.sendKeyEvent(keyCode, serial)
         return "Sent key event: $key"
     }
 
@@ -151,7 +151,7 @@ class IosDeviceController(
         serial: String?
     ): String {
         serial ?: error("Serial cannot be null for iOS devices")
-        iOSDeviceBridge.swipe(startX, startY, endX, endY)
+        iOSDeviceBridge.swipe(startX, startY, endX, endY, serial)
         return "Swiped from ($startX, $startY) to ($endX, $endY)"
     }
 

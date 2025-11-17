@@ -51,6 +51,17 @@ val toolsModule = module {
         )
     } bind DeviceController::class
 
+    single {
+        Json {
+            prettyPrint = true          // formatted output
+            isLenient = false            // allow non-strict JSON
+            ignoreUnknownKeys = true    // ignore fields not in your class
+            encodeDefaults = false       // include default values in output
+            explicitNulls = false
+            coerceInputValues = true
+        }
+    }
+
 
     single(IosDeviceControllerQualifier) {
         getIosDeviceController(json = get(), clock = get(), appConfigManager = get(), layoutParser = get())

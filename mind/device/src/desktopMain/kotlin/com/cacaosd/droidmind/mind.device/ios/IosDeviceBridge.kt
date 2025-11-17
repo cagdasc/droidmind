@@ -11,7 +11,7 @@ class IosDeviceBridge(private val json: Json) {
 
     fun getDevices(): List<IdbDevice> {
         val child = Command("idb")
-            .args(listOf("list_targets", "--json"))
+            .args(listOf("list-targets", "--json"))
             .stdout(Stdio.Pipe)
             .spawn()
         val devices = child.bufferedStdout()?.lines()?.map { line ->
@@ -23,7 +23,7 @@ class IosDeviceBridge(private val json: Json) {
 
     fun getInstalledApps(udid: String): List<IdbInstalledApp> {
         val child = Command("idb")
-            .args(listOf("list_apps", "--udid", udid, "--json"))
+            .args(listOf("list-apps", "--udid", udid, "--json"))
             .stdout(Stdio.Pipe)
             .spawn()
         val apps = child.bufferedStdout()?.lines()?.map { line ->
@@ -46,37 +46,38 @@ class IosDeviceBridge(private val json: Json) {
         return IOSDriver(URI("http://192.168.0.59:8100").toURL(), options)
     }
 
-    fun sendInput(input: String): Boolean {
+    fun sendInput(input: String, serial: String): Boolean {
         return Command("idb")
-            .args(listOf("ui", "text", input))
+            .args(listOf("ui", "text", input, "--udid", serial))
             .stdout(Stdio.Null)
             .spawn()
             .wait() == 0
     }
 
-    fun tap(x: Int, y: Int): Boolean {
+    fun tap(x: Int, y: Int, serial: String): Boolean {
         return Command("idb")
-            .args(listOf("ui", "tap", x.toString(), y.toString()))
+            .args(listOf("ui", "tap", x.toString(), y.toString(), "--udid", serial))
             .stdout(Stdio.Null)
             .spawn()
             .wait() == 0
     }
 
-    fun sendKeyEvent(key: Int): Boolean {
+    fun sendKeyEvent(key: Int, serial: String): Boolean {
         return Command("idb")
-            .args(listOf("ui", "key", key.toString()))
+            .args(listOf("ui", "key", key.toString(), "--udid", serial))
             .stdout(Stdio.Null)
             .spawn()
             .wait() == 0
     }
 
-    fun swipe(startX: Int, startY: Int, endX: Int, endY: Int): Boolean {
+    fun swipe(startX: Int, startY: Int, endX: Int, endY: Int, serial: String): Boolean {
         return Command("idb")
             .args(
                 listOf(
                     "ui", "swipe",
                     startX.toString(), startY.toString(),
                     endX.toString(), endY.toString(),
+                    "--udid", serial
                 )
             )
             .stdout(Stdio.Null)
