@@ -3,7 +3,7 @@ package com.cacaosd.droidmind.mind.device.controller
 import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.mind.device.info.DeviceInfo
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
-import com.cacaosd.droidmind.mind.layout.optimizer.LayoutOptimiser
+import com.cacaosd.droidmind.mind.layout.optimizer.LayoutParser
 import java.io.File
 import java.time.Clock
 
@@ -40,6 +40,6 @@ interface DeviceController {
 
 expect fun getAndroidDeviceController(
     appConfigManager: AppConfigManager,
-    layoutOptimiser: LayoutOptimiser,
+    layoutParser: LayoutParser,
     clock: Clock
 ): DeviceController

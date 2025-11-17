@@ -8,4 +8,5 @@ val json = Json {
     ignoreUnknownKeys = false    // ignore fields not in your class
     encodeDefaults = false       // include default values in output
     explicitNulls = false
+    coerceInputValues = true
 }

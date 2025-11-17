@@ -8,12 +8,13 @@ import kotlinx.serialization.decodeFromString
 import nl.adaptivity.xmlutil.serialization.XML
 import java.io.File
 
-fun getLayoutOptimiser() =
-    LayoutOptimiser(xml = xmlParser, nodeOptimisationStrategy = CollapseParentNodeStrategy())
+fun androidLayoutParser(): LayoutParser =
+    AndroidLayoutParser(xml = xmlParser, nodeOptimisationStrategy = CollapseParentNodeStrategy())
 
-class LayoutOptimiser(private val xml: XML, private val nodeOptimisationStrategy: NodeOptimisationStrategy) {
+class AndroidLayoutParser(private val xml: XML, private val nodeOptimisationStrategy: NodeOptimisationStrategy<Node>) :
+    LayoutParser {
 
-    fun optimise(uiDumpFile: File): OptimisedHierarchy? {
+    override fun parse(uiDumpFile: File): OptimisedHierarchy? {
         val uiText = uiDumpFile.readText()
         val hierarchy = xml.decodeFromString<Hierarchy>(uiText)
         return hierarchy.toOptimizedUi()
@@ -29,8 +30,9 @@ class LayoutOptimiser(private val xml: XML, private val nodeOptimisationStrategy
     }
 
     private fun Node.toUiElement(): UiElement? {
-        val rect = bounds.toRect() ?: return null
         val children = children.mapNotNull { it.toUiElement() }
+
+        val rect = bounds.toRect() ?: return null
 
         return UiElement(
             type = elementTypeFromNode(this),

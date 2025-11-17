@@ -1,24 +1,21 @@
 package com.cacaosd.droidmind.mind.layout.strategy
 
-import com.cacaosd.droidmind.mind.layout.model.Node
+import com.cacaosd.droidmind.mind.layout.model.WdaNode
 
-class CollapseParentNodeStrategy : NodeOptimisationStrategy<Node> {
-    override fun optimise(node: Node): Node {
+class CollapseParentWdaNodeStrategy : NodeOptimisationStrategy<WdaNode> {
+    override fun optimise(node: WdaNode): WdaNode {
         return node.cleanAndReindex() ?: error("Node cannot be optimised.")
     }
 
-    private fun Node.cleanAndReindex(): Node? {
+    private fun WdaNode.cleanAndReindex(): WdaNode? {
         // Recursively clean children
         val cleanedChildren = children.mapNotNull { it.cleanAndReindex() }
 
         // Determine if this node is meaningful
-        val isMeaningful = text.isNotBlank()
-                || resourceId.isNotBlank()
-                || contentDesc.isNotBlank()
-                || clickable
-                || longClickable
-                || checkable
-                || focusable
+        val isMeaningful = name.isNotBlank()
+                || label.isNotBlank()
+                || visible
+                || accessible
 
         // Collapse meaningless parent with a single child
         if (!isMeaningful && cleanedChildren.size == 1) {
@@ -32,7 +29,7 @@ class CollapseParentNodeStrategy : NodeOptimisationStrategy<Node> {
 
         // Reindex children
         val reIndexedChildren = cleanedChildren.mapIndexed { idx, child ->
-            child.copy(index = idx.toString())
+            child.copy(index = idx)
         }
 
         // Return cleaned and re-indexed node

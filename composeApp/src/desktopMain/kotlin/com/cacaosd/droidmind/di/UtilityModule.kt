@@ -11,8 +11,10 @@ import com.cacaosd.droidmind.domain.McpMessage
 import com.cacaosd.droidmind.localProperties
 import com.cacaosd.droidmind.mind.device.controller.DeviceController
 import com.cacaosd.droidmind.mind.device.controller.getAndroidDeviceController
-import com.cacaosd.droidmind.mind.layout.optimizer.LayoutOptimiser
-import com.cacaosd.droidmind.mind.layout.optimizer.getLayoutOptimiser
+import com.cacaosd.droidmind.mind.device.controller.getIosDeviceController
+import com.cacaosd.droidmind.mind.layout.optimizer.LayoutParser
+import com.cacaosd.droidmind.mind.layout.optimizer.androidLayoutParser
+import com.cacaosd.droidmind.mind.layout.optimizer.iOSLayoutParser
 import com.cacaosd.droidmind.mind.verifier.Verifier
 import com.cacaosd.droidmind.verifier.verifier.UiTextVerifier
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,14 +40,22 @@ val toolsModule = module {
         )
     }
 
-    single<LayoutOptimiser> { getLayoutOptimiser() }
+    single(AndroidLayoutParserQualifier) { androidLayoutParser() } bind LayoutParser::class
+    single(IosLayoutParserQualifier) { iOSLayoutParser() } bind LayoutParser::class
+
     single(AndroidDeviceControllerQualifier) {
         getAndroidDeviceController(
             appConfigManager = get(),
-            layoutOptimiser = get(),
+            layoutParser = get(),
             clock = get()
         )
     } bind DeviceController::class
+
+
+    single(IosDeviceControllerQualifier) {
+        getIosDeviceController(json = get(), clock = get(), appConfigManager = get(), layoutParser = get())
+    } bind DeviceController::class
+
     single<Verifier> {
         UiTextVerifier(
             platformDispatchers = get(),

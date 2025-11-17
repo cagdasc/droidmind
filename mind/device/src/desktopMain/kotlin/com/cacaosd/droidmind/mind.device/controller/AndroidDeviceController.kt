@@ -10,7 +10,7 @@ import com.cacaosd.droidmind.mind.device.android.CollectingReceiver
 import com.cacaosd.droidmind.mind.device.android.getAdb
 import com.cacaosd.droidmind.mind.device.info.DeviceInfo
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
-import com.cacaosd.droidmind.mind.layout.optimizer.LayoutOptimiser
+import com.cacaosd.droidmind.mind.layout.optimizer.LayoutParser
 import com.cacaosd.platform.coroutines.extensions.asFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -23,12 +23,12 @@ import java.util.concurrent.TimeUnit
 
 actual fun getAndroidDeviceController(
     appConfigManager: AppConfigManager,
-    layoutOptimiser: LayoutOptimiser,
+    layoutParser: LayoutParser,
     clock: Clock
 ): DeviceController =
     AndroidDeviceController(
         adb = getAdb(),
-        layoutOptimiser = layoutOptimiser,
+        layoutParser = layoutParser,
         appConfigManager = appConfigManager,
         clock = clock
     )
@@ -44,7 +44,7 @@ internal suspend fun IDevice.executeShellCommandWithDelay(
 
 class AndroidDeviceController(
     private val adb: AndroidDebugBridge,
-    private val layoutOptimiser: LayoutOptimiser,
+    private val layoutParser: LayoutParser,
     private val appConfigManager: AppConfigManager,
     private val clock: Clock
 ) : DeviceController {
@@ -126,7 +126,7 @@ class AndroidDeviceController(
     override suspend fun getOptimisedUiHierarchy(packageName: String, serial: String?): OptimisedHierarchy? {
         val uiDumpFile =
             getUiDumpFile(packageName = packageName, serial = serial) ?: error("Failed to get UI dump file")
-        return layoutOptimiser.optimise(uiDumpFile)
+        return layoutParser.parse(uiDumpFile)
     }
 
     override suspend fun inputText(text: String, serial: String?): String = withContext(Dispatchers.IO) {

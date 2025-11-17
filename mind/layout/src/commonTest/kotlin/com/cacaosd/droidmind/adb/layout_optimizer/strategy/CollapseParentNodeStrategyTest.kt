@@ -2,6 +2,7 @@ package com.cacaosd.droidmind.adb.layout_optimizer.strategy
 
 import com.cacaosd.droidmind.mind.layout.model.Hierarchy
 import com.cacaosd.droidmind.mind.layout.model.Node
+import com.cacaosd.droidmind.mind.layout.model.WdaNode
 import com.cacaosd.droidmind.mind.layout.parser.xmlParser
 import com.cacaosd.droidmind.mind.layout.strategy.CollapseParentNodeStrategy
 import kotlinx.serialization.decodeFromString
@@ -13,19 +14,36 @@ import kotlin.test.assertTrue
 class CollapseParentNodeStrategyTest {
     private val strategy = CollapseParentNodeStrategy()
 
-    private fun readFile(): Hierarchy {
-        val stream = javaClass.classLoader.getResourceAsStream("ui_dump/youtube_home.xml")
-            ?: throw IllegalArgumentException("Resource not found: ui_dump/youtube_home.xml")
-        val content = stream.bufferedReader().use { it.readText() }
-        return xmlParser.decodeFromString(content)
+    private fun readFile(fileName: String): String {
+        val stream = javaClass.classLoader.getResourceAsStream("ui_dump/$fileName")
+            ?: throw IllegalArgumentException("Resource not found: ui_dump/$fileName")
+        return stream.bufferedReader().use { it.readText() }
+    }
+
+    private fun parseXmlToHierarchy(xmlContent: String): Hierarchy {
+        return xmlParser.decodeFromString(xmlContent)
+    }
+
+    private fun parseXmlToWda(xmlContent: String): WdaNode {
+        return xmlParser.decodeFromString(xmlContent)
     }
 
     @Test
     fun `parser reads real ui_dump file`() {
-        val hierarchy = readFile()
+        val content = readFile("youtube_home.xml")
+        val hierarchy = parseXmlToHierarchy(content)
         // basic sanity checks
         assertTrue(hierarchy.rotation.isNotEmpty())
         assertTrue(hierarchy.node.index.isNotEmpty())
+    }
+
+    @Test
+    fun `parser reads ios ui_dump file`() {
+        val content = readFile("ios.xml").replace(Regex("""\\(["/ ])"""), "$1")
+
+        val wda = parseXmlToWda(content)
+        // basic sanity checks
+        println(wda)
     }
 
     @Test

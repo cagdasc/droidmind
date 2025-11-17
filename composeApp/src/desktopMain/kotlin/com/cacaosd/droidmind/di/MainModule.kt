@@ -16,7 +16,13 @@ internal object CustomAgentQualifier : SelfResolveQualifier()
 
 internal object AgentMessageFlowQualifier : SelfResolveQualifier()
 
+internal object AndroidLayoutParserQualifier : SelfResolveQualifier()
+
+internal object IosLayoutParserQualifier : SelfResolveQualifier()
+
 internal object AndroidDeviceControllerQualifier : SelfResolveQualifier()
+
+internal object IosDeviceControllerQualifier : SelfResolveQualifier()
 
 internal abstract class SelfResolveQualifier : Qualifier {
     override val value: QualifierValue
