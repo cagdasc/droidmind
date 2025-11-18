@@ -1,15 +1,10 @@
-package com.cacaosd.droidmind.mind.layout.optimizer
+package com.cacaosd.droidmind.mind.layout.parser
 
 import com.cacaosd.droidmind.mind.layout.model.*
-import com.cacaosd.droidmind.mind.layout.parser.xmlParser
-import com.cacaosd.droidmind.mind.layout.strategy.CollapseParentWdaNodeStrategy
-import com.cacaosd.droidmind.mind.layout.strategy.NodeOptimisationStrategy
+import com.cacaosd.droidmind.mind.layout.optimisation_strategy.NodeOptimisationStrategy
 import kotlinx.serialization.decodeFromString
 import nl.adaptivity.xmlutil.serialization.XML
 import java.io.File
-
-fun iOSLayoutParser(): LayoutParser =
-    IosLayoutParser(xml = xmlParser, nodeOptimisationStrategy = CollapseParentWdaNodeStrategy())
 
 class IosLayoutParser(private val xml: XML, private val nodeOptimisationStrategy: NodeOptimisationStrategy<WdaNode>) :
     LayoutParser {

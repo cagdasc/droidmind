@@ -4,11 +4,12 @@ package com.cacaosd.droidmind.feature
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cacaosd.droidmind.agent.tools.description.DeviceControllerToolsConstant
-import com.cacaosd.droidmind.agent.tools.description.TestCaseVerifierToolsConstant
+import com.cacaosd.droidmind.core.logging.Logger
 import com.cacaosd.droidmind.domain.McpMessage
 import com.cacaosd.droidmind.domain.session.ScenarioExecution
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
+import com.cacaosd.droidmind.domain.tools.DeviceControllerToolsConstant
+import com.cacaosd.droidmind.domain.tools.TestCaseVerifierToolsConstant
 import com.cacaosd.droidmind.mind.device.controller.DeviceController
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import kotlinx.coroutines.*
@@ -94,6 +95,9 @@ class ChatViewModel(
                         )
                     })
                 }
+            }
+            .catch {
+                Logger.error("Error while polling for connected devices", it)
             }.launchIn(viewModelScope)
     }
 

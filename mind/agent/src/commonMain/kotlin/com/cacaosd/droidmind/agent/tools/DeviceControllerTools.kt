@@ -3,7 +3,7 @@ package com.cacaosd.droidmind.agent.tools
 import ai.koog.agents.core.tools.annotations.LLMDescription
 import ai.koog.agents.core.tools.annotations.Tool
 import ai.koog.agents.core.tools.reflect.ToolSet
-import com.cacaosd.droidmind.agent.tools.description.DeviceControllerToolsConstant
+import com.cacaosd.droidmind.domain.tools.DeviceControllerToolsConstant
 import com.cacaosd.droidmind.mind.device.controller.DeviceController
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 

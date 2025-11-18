@@ -17,6 +17,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Preview
 fun App() {
     KoinApplication(application = {
+        allowOverride(false)
         platformCoroutines()
         modules(mainModule, featureModule)
         val appConfigManager = koin.get<AppConfigManager>()

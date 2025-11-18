@@ -4,7 +4,7 @@ import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.mind.device.info.DeviceInfo
 import com.cacaosd.droidmind.mind.device.ios.IosDeviceBridge
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
-import com.cacaosd.droidmind.mind.layout.optimizer.LayoutParser
+import com.cacaosd.droidmind.mind.layout.parser.LayoutParser
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import org.openqa.selenium.OutputType
@@ -15,7 +15,7 @@ import java.nio.file.Files
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 
-fun getIosDeviceController(
+actual fun getIosDeviceController(
     json: Json,
     clock: Clock,
     appConfigManager: AppConfigManager,

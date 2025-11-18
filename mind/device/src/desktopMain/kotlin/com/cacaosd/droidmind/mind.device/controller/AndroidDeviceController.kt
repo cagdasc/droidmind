@@ -10,7 +10,7 @@ import com.cacaosd.droidmind.mind.device.android.CollectingReceiver
 import com.cacaosd.droidmind.mind.device.android.getAdb
 import com.cacaosd.droidmind.mind.device.info.DeviceInfo
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
-import com.cacaosd.droidmind.mind.layout.optimizer.LayoutParser
+import com.cacaosd.droidmind.mind.layout.parser.LayoutParser
 import com.cacaosd.platform.coroutines.extensions.asFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

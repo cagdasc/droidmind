@@ -12,9 +12,9 @@ kotlin {
         val desktopMain by getting
 
         commonMain.dependencies {
+            implementation(project(":core:logging"))
             implementation(project(":mind:device"))
             implementation(project(":mind:layout"))
-            implementation(project(":mind:agent"))
             implementation(project(":mind:domain"))
             implementation(project(":ui:theme"))
 

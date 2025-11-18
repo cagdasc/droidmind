@@ -11,6 +11,12 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core:logging"))
             implementation(libs.kotlinx.datetime)
+
+            implementation(libs.xmlutil.core)
+            implementation(libs.xmlutil.serialization)
+            implementation(libs.kotlinx.serialization.json)
+
+            implementation(libs.koin.core)
         }
 
         @OptIn(ExperimentalKotlinGradlePluginApi::class)

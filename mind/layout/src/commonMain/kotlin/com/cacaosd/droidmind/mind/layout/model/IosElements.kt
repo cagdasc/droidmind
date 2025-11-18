@@ -1,6 +1,4 @@
-package com.cacaosd.droidmind.mind.layout.optimizer
-
-import com.cacaosd.droidmind.mind.layout.model.Element
+package com.cacaosd.droidmind.mind.layout.model
 
 val iosElementMapping: Map<String, Element> = mapOf(
 

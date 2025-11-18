@@ -1,4 +1,4 @@
-package com.cacaosd.droidmind.mind.layout.optimizer
+package com.cacaosd.droidmind.mind.layout.parser
 
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import java.io.File

@@ -3,8 +3,8 @@ package com.cacaosd.droidmind.adb.layout_optimizer.strategy
 import com.cacaosd.droidmind.mind.layout.model.Hierarchy
 import com.cacaosd.droidmind.mind.layout.model.Node
 import com.cacaosd.droidmind.mind.layout.model.WdaNode
+import com.cacaosd.droidmind.mind.layout.optimisation_strategy.CollapseParentNodeStrategy
 import com.cacaosd.droidmind.mind.layout.parser.xmlParser
-import com.cacaosd.droidmind.mind.layout.strategy.CollapseParentNodeStrategy
 import kotlinx.serialization.decodeFromString
 import kotlin.test.Test
 import kotlin.test.assertEquals

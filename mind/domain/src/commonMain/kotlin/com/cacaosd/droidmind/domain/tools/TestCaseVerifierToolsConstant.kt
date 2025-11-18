@@ -1,4 +1,4 @@
-package com.cacaosd.droidmind.agent.tools.description
+package com.cacaosd.droidmind.domain.tools
 
 object TestCaseVerifierToolsConstant {
     const val TOOLSET_DESCRIPTION = "Tools to verify test cases on Android devices."

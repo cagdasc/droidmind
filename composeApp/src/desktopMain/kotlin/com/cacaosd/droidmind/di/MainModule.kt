@@ -2,33 +2,34 @@
 
 package com.cacaosd.droidmind.di
 
-import org.koin.core.qualifier.Qualifier
-import org.koin.core.qualifier.QualifierValue
-import org.koin.core.qualifier.TypeQualifier
+import com.cacaosd.droidmind.agent.di.AgentMessageFlowQualifier
+import com.cacaosd.droidmind.agent.di.agentModule
+import com.cacaosd.droidmind.agent.di.agentToolsModule
+import com.cacaosd.droidmind.agent.event.EventMapper
+import com.cacaosd.droidmind.core.config.di.coreConfigModule
+import com.cacaosd.droidmind.domain.McpMessage
+import com.cacaosd.droidmind.localProperties
+import com.cacaosd.droidmind.mind.device.di.deviceModule
+import com.cacaosd.droidmind.mind.layout.di.layoutModule
+import com.cacaosd.droidmind.mind.verifier.di.verifierModule
+import kotlinx.coroutines.flow.MutableSharedFlow
 import org.koin.dsl.module
+import java.time.Clock
+import java.util.*
 import kotlin.uuid.ExperimentalUuidApi
 
-internal object GoogleAgentQualifier : SelfResolveQualifier()
-
-internal object MetaAgentQualifier : SelfResolveQualifier()
-
-internal object CustomAgentQualifier : SelfResolveQualifier()
-
-internal object AgentMessageFlowQualifier : SelfResolveQualifier()
-
-internal object AndroidLayoutParserQualifier : SelfResolveQualifier()
-
-internal object IosLayoutParserQualifier : SelfResolveQualifier()
-
-internal object AndroidDeviceControllerQualifier : SelfResolveQualifier()
-
-internal object IosDeviceControllerQualifier : SelfResolveQualifier()
-
-internal abstract class SelfResolveQualifier : Qualifier {
-    override val value: QualifierValue
-        get() = TypeQualifier(this::class).value
-}
-
 val mainModule = module {
-    includes(utilityModule, toolsModule, agentModule)
+    includes(
+        coreConfigModule,
+        layoutModule,
+        verifierModule,
+        deviceModule,
+        agentModule,
+        agentToolsModule
+    )
+
+    single { EventMapper() }
+    single<MutableSharedFlow<McpMessage>>(AgentMessageFlowQualifier) { MutableSharedFlow() }
+    single<Properties> { localProperties }
+    single<Clock> { Clock.systemUTC() }
 }

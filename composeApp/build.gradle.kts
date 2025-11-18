@@ -18,12 +18,12 @@ kotlin {
             implementation(project(":core:config"))
             implementation(project(":core:logging"))
             implementation(project(":feature:chat"))
-            implementation(project(":ui:theme"))
             implementation(project(":mind:device"))
             implementation(project(":mind:layout"))
             implementation(project(":mind:verifier"))
             implementation(project(":mind:agent"))
             implementation(project(":mind:domain"))
+            implementation(project(":ui:theme"))
 
             implementation(libs.platform.coroutines)
             implementation(libs.platform.coroutines.di)

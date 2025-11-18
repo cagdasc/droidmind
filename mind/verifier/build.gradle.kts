@@ -10,16 +10,13 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":core:config"))
             implementation(project(":mind:device"))
             implementation(project(":mind:layout"))
             implementation(libs.platform.coroutines)
             implementation(libs.kotlinx.coroutines.core)
-        }
 
-        val desktopMain by getting {
-            dependencies {
-
-            }
+            implementation(libs.koin.core)
         }
     }
 

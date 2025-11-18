@@ -10,10 +10,14 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":core:config"))
+
             implementation(libs.xmlutil.core)
             implementation(libs.xmlutil.serialization)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
+
+            implementation(libs.koin.core)
         }
 
         commonTest.dependencies {
