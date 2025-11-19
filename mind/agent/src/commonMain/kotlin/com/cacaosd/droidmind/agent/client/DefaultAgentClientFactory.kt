@@ -135,7 +135,7 @@ class DefaultAgentClientFactory(
             4. Prompt-Based Inference: If the user does not provide an app name or package, try to infer the target app from the context of the prompt and resolve its package name automatically.
             5. App Control: Launch any app with launch_app_by_package using either inferred or user-provided package name and device serial.
             6. UI Understanding: Use get_ui_dump to parse and understand the current screen’s structure and elements.
-            7. Interaction: Perform actions like tap, input_text, send_key_event, device_screenshot, and swipe to simulate real user behavior. Execute "UI Understanding" after any interaction to ensure latest state of screen.
+            7. Interaction: Perform actions like tap, input_text, send_key_event, device_screenshot, vertical_scroll_down, vertical_scroll_up, horizontal_scroll_right, horizontal_scroll_left to simulate real user behavior. Execute "UI Understanding" after any interaction to ensure latest state of screen.
             8. Proactive Navigation: Move through apps and system settings as needed to accomplish tasks—without waiting for explicit instructions.
             9. Error Handling: If a task fails or unexpected behavior occurs, adjust your strategy intelligently to recover or reroute.
             10. Minimal Clarification: Only ask for user input when absolutely necessary; prefer to resolve ambiguity through observation or inference.

@@ -2,6 +2,7 @@ package com.cacaosd.droidmind.mind.device.controller
 
 import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.mind.device.info.DeviceInfo
+import com.cacaosd.droidmind.mind.device.ios.DeviceState
 import com.cacaosd.droidmind.mind.device.ios.IosDeviceBridge
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import com.cacaosd.droidmind.mind.layout.parser.LayoutParser
@@ -35,13 +36,14 @@ class IosDeviceController(
     private val layoutParser: LayoutParser
 ) : DeviceController {
     override suspend fun getDevices(): List<DeviceInfo> {
-        return iOSDeviceBridge.getDevices().map {
+        return iOSDeviceBridge.getDevices().filter { it.state == DeviceState.Booted }.map {
+            val batteryInfo = iOSDeviceBridge.getDriver(udid = it.udid).batteryInfo
             DeviceInfo(
                 name = it.name,
                 serial = it.udid,
                 osVersion = it.osVersion,
-                batteryLevel = -1,
-                dimensions = DeviceInfo.Dimensions(width = -1, height = -1)
+                batteryLevel = batteryInfo.level.toInt(),
+                dimensions = getDimensions(it.udid)
             )
         }
     }
@@ -53,12 +55,9 @@ class IosDeviceController(
 
     override suspend fun launchApp(packageName: String, serial: String?): String {
         val serial = serial ?: error("Serial cannot be null for iOS devices")
-        val isLaunched = iOSDeviceBridge.launchApp(serial, packageName)
-        return if (isLaunched) {
-            "Launched $packageName"
-        } else {
-            "Failed to launch $packageName"
-        }
+        iOSDeviceBridge.launchApp(serial, packageName)
+        iOSDeviceBridge.waitForAppToBeInForeground(serial, packageName)
+        return "Launched $packageName"
     }
 
     override suspend fun getUiDumpFile(packageName: String, serial: String?): File? {
@@ -109,6 +108,15 @@ class IosDeviceController(
         val driver = iOSDeviceBridge.getDriver(serial)
         val size = driver.manage().window().size
         return "${size.width}x${size.height}"
+    }
+
+    private suspend fun getDimensions(serial: String?): DeviceInfo.Dimensions {
+        val deviceSize = deviceSize(serial)
+        val regex = Regex("""\b(\d+x\d+)\b""")
+        val size = regex.find(deviceSize)?.groups[1]?.value
+        return size?.split("x")?.let {
+            DeviceInfo.Dimensions(width = it[0].toInt(), height = it[1].toInt())
+        } ?: DeviceInfo.Dimensions(0, 0)
     }
 
     override suspend fun screenshot(serial: String?): String {

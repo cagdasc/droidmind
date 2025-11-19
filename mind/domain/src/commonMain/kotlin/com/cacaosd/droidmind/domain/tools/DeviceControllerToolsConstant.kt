@@ -36,9 +36,21 @@ object DeviceControllerToolsConstant {
     const val DEVICE_SIZE_TOOL_DESC =
         "Retrieves the screen size (width x height) of the specified Android device."
 
-    const val SWIPE_TOOL = "swipe"
-    const val SWIPE_TOOL_DESC =
-        "Performs a swipe gesture from the starting coordinates (startX, startY) to the ending coordinates (endX, endY) over a specified duration in milliseconds on the Android device. If the difference between startX and endX is greater than that of startY and endY, it indicates a horizontal swipe; otherwise, it's a vertical swipe."
+    const val VERTICAL_SCROLL_DOWN_TOOL = "vertical_scroll_down"
+    const val VERTICAL_SCROLL_DOWN_TOOL_DESC =
+        "Executes a vertical scroll down by moving from (startX, startY) to (endX, endY) where startX == endX and endY < startY, moving the finger upward on the screen."
+
+    const val VERTICAL_SCROLL_UP_TOOL = "vertical_scroll_up"
+    const val VERTICAL_SCROLL_UP_TOOL_DESC =
+        "Executes a vertical scroll up by moving from (startX, startY) to (endX, endY) where startX == endX and endY > startY, moving the finger downward on the screen."
+
+    const val HORIZONTAL_SCROLL_LEFT_TOOL = "horizontal_scroll_left"
+    const val HORIZONTAL_SCROLL_LEFT_TOOL_DESC =
+        "Executes a horizontal scroll left by moving from (startX, startY) to (endX, endY) where startY == endY and endX > startX, moving the finger toward the right side of the screen."
+
+    const val HORIZONTAL_SCROLL_RIGHT_TOOL = "horizontal_scroll_right"
+    const val HORIZONTAL_SCROLL_RIGHT_TOOL_DESC =
+        "Executes a horizontal scroll right by moving from (startX, startY) to (endX, endY) where startY == endY and endX < startX, moving the finger toward the left side of the screen."
 
     const val SCREENSHOT_TOOL = "device_screenshot"
     const val SCREENSHOT_TOOL_DESC =

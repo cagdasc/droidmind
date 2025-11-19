@@ -1,9 +1,14 @@
 package com.cacaosd.droidmind.mind.device.ios
 
+import com.cacaosd.droidmind.core.logging.Logger
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
+import io.appium.java_client.appmanagement.ApplicationState
 import io.appium.java_client.ios.IOSDriver
 import io.appium.java_client.ios.options.XCUITestOptions
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import java.net.URI
 
@@ -33,17 +38,14 @@ class IosDeviceBridge(private val json: Json) {
         return apps
     }
 
-    fun launchApp(udid: String, bundleId: String): Boolean {
-        return Command("idb")
-            .args(listOf("launch", "--udid", udid, bundleId))
-            .stdout(Stdio.Null)
-            .spawn()
-            .wait() == 0
+    fun launchApp(udid: String, bundleId: String) {
+        val driver = getDriver(udid)
+        driver.activateApp(bundleId)
     }
 
     fun getDriver(udid: String): IOSDriver {
         val options = XCUITestOptions().apply { setUdid(udid) }
-        return IOSDriver(URI("http://192.168.0.59:8100").toURL(), options)
+        return IOSDriver(URI("http://192.168.0.59:4723").toURL(), options)
     }
 
     fun sendInput(input: String, serial: String): Boolean {
@@ -77,11 +79,25 @@ class IosDeviceBridge(private val json: Json) {
                     "ui", "swipe",
                     startX.toString(), startY.toString(),
                     endX.toString(), endY.toString(),
-                    "--udid", serial
+                    "--udid", serial,
+                    "--delta", "1"
                 )
             )
             .stdout(Stdio.Null)
             .spawn()
             .wait() == 0
     }
+
+    suspend fun waitForAppToBeInForeground(serial: String, packageName: String) = withTimeoutOrNull(5000) {
+        val driver = getDriver(serial)
+        while (isActive) {
+            delay(250)
+            if (driver.queryAppState(packageName).also {
+                    Logger.debug("App $packageName state on device $serial: $it")
+                } == ApplicationState.RUNNING_IN_FOREGROUND) {
+                return@withTimeoutOrNull true
+            }
+        }
+        return@withTimeoutOrNull false
+    } ?: false
 }
