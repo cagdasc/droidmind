@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AppiumAUT>
+    <XCUIElementTypeApplication type="XCUIElementTypeApplication" name="News" label="News" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="" processId="67488" bundleId="com.apple.news">
+        <XCUIElementTypeWindow type="XCUIElementTypeWindow" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                    <XCUIElementTypeNavigationBar type="XCUIElementTypeNavigationBar" name="TeaUI.LazyView" enabled="true" visible="false" accessible="false" x="0" y="47" width="390" height="54" index="0" traits=""/>
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="-867" width="390" height="156" index="0" traits="">
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="-781" width="358" height="77" index="0" traits="">
+                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="-808" width="358" height="21" index="0" traits="">
+                                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="-808" width="358" height="21" index="0" traits="">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="-808" width="358" height="21" index="0" traits="">
+                                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" enabled="true" visible="false" accessible="false" x="16" y="-808" width="358" height="21" index="0" traits="StaticText"/>
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="-808" width="358" height="21" index="1" traits=""/>
+                                                                        <XCUIElementTypeImage type="XCUIElementTypeImage" enabled="true" visible="false" accessible="false" x="16" y="-803" width="358" height="11" index="2" traits="Image"/>
+                                                                    </XCUIElementTypeOther>
+                                                                </XCUIElementTypeOther>
+                                                            </XCUIElementTypeOther>
+                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="-776" width="358" height="63" index="1" traits="">
+                                                                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="News&#10;23 November" name="News&#10;23 November" label="News&#10;23 November" enabled="true" visible="false" accessible="true" x="16" y="-781" width="358" height="77" index="0" traits="Header, StaticText"/>
+                                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="254" y="-744" width="120" height="3" index="1" traits="">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="254" y="-744" width="120" height="3" index="0" traits="">
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="SponsorshipAdView" enabled="true" visible="false" accessible="true" x="254" y="-744" width="120" height="1" index="0" traits=""/>
+                                                                    </XCUIElementTypeOther>
+                                                                </XCUIElementTypeOther>
+                                                            </XCUIElementTypeOther>
+                                                        </XCUIElementTypeOther>
+                                                    </XCUIElementTypeOther>
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="1" traits="">
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                                            <XCUIElementTypeCollectionView type="XCUIElementTypeCollectionView" name="Today Feed" label="Today Feed" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="845" index="0" traits="">
+                                                                <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="16" y="-18" width="174" height="307" index="0" traits="">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="-18" width="174" height="307" index="0" traits="">
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="The Telegraph, 5 days ago, Tony Diver and Rozina Sabur, Revealed: LinkedIn messages that led MI5 to warn about Chinese spies" label="The Telegraph, 5 days ago, Tony Diver and Rozina Sabur, Revealed: LinkedIn messages that led MI5 to warn about Chinese spies" enabled="true" visible="true" accessible="true" x="16" y="-18" width="174" height="307" index="0" traits=""/>
+                                                                    </XCUIElementTypeOther>
+                                                                </XCUIElementTypeCell>
+                                                                <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="200" y="-18" width="174" height="307" index="1" traits="">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="200" y="-18" width="174" height="307" index="0" traits="">
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="Sky News, 5 days ago, Actor Anna Maxwell Martin says primary school tests ‘devastating’ for SEND pupils" label="Sky News, 5 days ago, Actor Anna Maxwell Martin says primary school tests ‘devastating’ for SEND pupils" enabled="true" visible="true" accessible="true" x="200" y="-18" width="174" height="307" index="0" traits=""/>
+                                                                    </XCUIElementTypeOther>
+                                                                </XCUIElementTypeCell>
+                                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="845" index="2" traits=""/>
+                                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="845" index="3" traits="">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="156" index="0" traits="">
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="156" index="0" traits="">
+                                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="156" index="0" traits=""/>
+                                                                        </XCUIElementTypeOther>
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="156" index="1" traits="">
+                                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="156" index="0" traits=""/>
+                                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="156" index="1" traits=""/>
+                                                                        </XCUIElementTypeOther>
+                                                                    </XCUIElementTypeOther>
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="696" width="390" height="149" index="1" traits="">
+                                                                        <XCUIElementTypeImage type="XCUIElementTypeImage" name="AdditionalDimmingOverlay" enabled="true" visible="true" accessible="false" x="-120" y="701" width="630" height="287" index="0" traits="Image"/>
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="696" width="390" height="149" index="1" traits="">
+                                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="696" width="390" height="149" index="0" traits=""/>
+                                                                        </XCUIElementTypeOther>
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="696" width="390" height="149" index="2" traits="">
+                                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="696" width="390" height="149" index="0" traits=""/>
+                                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="696" width="390" height="149" index="1" traits=""/>
+                                                                        </XCUIElementTypeOther>
+                                                                    </XCUIElementTypeOther>
+                                                                </XCUIElementTypeOther>
+                                                                <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="16" y="298" width="358" height="167" index="4" traits="">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="298" width="358" height="167" index="0" traits="">
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="The Athletic, 5 days ago, Ali Rampling and Leon Imber, Scotland qualify for first World Cup since 1998 with dramatic late win over Denmark" label="The Athletic, 5 days ago, Ali Rampling and Leon Imber, Scotland qualify for first World Cup since 1998 with dramatic late win over Denmark" enabled="true" visible="true" accessible="true" x="16" y="298" width="358" height="167" index="0" traits=""/>
+                                                                    </XCUIElementTypeOther>
+                                                                </XCUIElementTypeCell>
+                                                                <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="16" y="474" width="358" height="167" index="5" traits="">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="474" width="358" height="167" index="0" traits="">
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="The Times and The Sunday Times, Apple News Plus, 5 days ago, How to retire with a £1mn pension" label="The Times and The Sunday Times, Apple News Plus, 5 days ago, How to retire with a £1mn pension" enabled="true" visible="true" accessible="true" x="16" y="474" width="358" height="167" index="0" traits=""/>
+                                                                    </XCUIElementTypeOther>
+                                                                </XCUIElementTypeCell>
+                                                                <XCUIElementTypeCell type="XCUIElementTypeCell" enabled="true" visible="true" accessible="false" x="16" y="650" width="358" height="167" index="6" traits="">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="16" y="650" width="358" height="167" index="0" traits="">
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" name="BBC Sky at Night Magazine, Apple News Plus, Prof Alister Graham, This is the science-backed truth behind your daily horoscope" label="BBC Sky at Night Magazine, Apple News Plus, Prof Alister Graham, This is the science-backed truth behind your daily horoscope" enabled="true" visible="true" accessible="true" x="16" y="650" width="358" height="167" index="0" traits=""/>
+                                                                    </XCUIElementTypeOther>
+                                                                </XCUIElementTypeCell>
+                                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="816" width="358" height="98" index="7" traits="">
+                                                                    <XCUIElementTypeLink type="XCUIElementTypeLink" name="More Top Stories " label="More Top Stories " enabled="true" visible="false" accessible="false" x="16" y="816" width="358" height="98" index="0" traits="Link">
+                                                                        <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="Selected by the Apple News editors." name="Selected by the Apple News editors." label="Selected by the Apple News editors." enabled="true" visible="false" accessible="false" x="16" y="834" width="240" height="18" index="0" traits="StaticText"/>
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="861" width="358" height="1" index="1" traits=""/>
+                                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="880" width="358" height="16" index="2" traits="">
+                                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="16" y="880" width="358" height="16" index="0" traits="">
+                                                                                <XCUIElementTypeStaticText type="XCUIElementTypeStaticText" value="More Top Stories " name="More Top Stories " label="More Top Stories " enabled="true" visible="false" accessible="false" x="252" y="880" width="122" height="16" index="0" traits="StaticText"/>
+                                                                            </XCUIElementTypeOther>
+                                                                        </XCUIElementTypeOther>
+                                                                    </XCUIElementTypeLink>
+                                                                </XCUIElementTypeOther>
+                                                                <XCUIElementTypeOther type="XCUIElementTypeOther" value="12%" name="Vertical scroll bar, 13 pages" label="Vertical scroll bar, 13 pages" enabled="true" visible="true" accessible="false" x="357" y="155" width="30" height="607" index="8" traits="Adjustable">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="384" y="224" width="3" height="65" index="0" traits=""/>
+                                                                </XCUIElementTypeOther>
+                                                                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="47" y="728" width="296" height="31" index="9" traits="Adjustable">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="50" y="755" width="290" height="4" index="0" traits=""/>
+                                                                </XCUIElementTypeOther>
+                                                                <XCUIElementTypeOther type="XCUIElementTypeOther" value="12%" name="Vertical scroll bar, 13 pages" label="Vertical scroll bar, 13 pages" enabled="true" visible="true" accessible="false" x="357" y="155" width="30" height="607" index="10" traits="Adjustable">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="384" y="224" width="3" height="65" index="0" traits=""/>
+                                                                </XCUIElementTypeOther>
+                                                                <XCUIElementTypeOther type="XCUIElementTypeOther" value="0%" name="Horizontal scroll bar, 1 page" label="Horizontal scroll bar, 1 page" enabled="true" visible="true" accessible="false" x="47" y="728" width="296" height="31" index="11" traits="Adjustable">
+                                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="50" y="755" width="290" height="4" index="0" traits=""/>
+                                                                </XCUIElementTypeOther>
+                                                            </XCUIElementTypeCollectionView>
+                                                        </XCUIElementTypeOther>
+                                                    </XCUIElementTypeOther>
+                                                </XCUIElementTypeOther>
+                                            </XCUIElementTypeOther>
+                                        </XCUIElementTypeOther>
+                                    </XCUIElementTypeOther>
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="2" traits="">
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="false" accessible="false" x="0" y="0" width="390" height="844" index="0" traits=""/>
+                                    </XCUIElementTypeOther>
+                                </XCUIElementTypeOther>
+                            </XCUIElementTypeOther>
+                        </XCUIElementTypeOther>
+                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="1" traits="">
+                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="0" width="390" height="844" index="0" traits="">
+                                <XCUIElementTypeTabBar type="XCUIElementTypeTabBar" name="Tab Bar" label="Tab Bar" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="0" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="21" y="761" width="278" height="62" index="0" traits="">
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="21" y="761" width="74" height="54" index="0" traits=""/>
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="21" y="761" width="278" height="62" index="1" traits="">
+                                            <XCUIElementTypeButton type="XCUIElementTypeButton" value="1" name="Today" label="Today" enabled="true" visible="true" accessible="true" x="25" y="765" width="74" height="54" index="0" traits="Selected, Button">
+                                                <XCUIElementTypeImage type="XCUIElementTypeImage" name="news" label="news" enabled="true" visible="true" accessible="false" x="48" y="772" width="28" height="26" index="0" traits="Image"/>
+                                            </XCUIElementTypeButton>
+                                            <XCUIElementTypeButton type="XCUIElementTypeButton" name="News+" label="News+" enabled="true" visible="true" accessible="true" x="90" y="765" width="75" height="54" index="1" traits="Button">
+                                                <XCUIElementTypeImage type="XCUIElementTypeImage" name="newsplus.fill" label="newsplus.fill" enabled="true" visible="true" accessible="false" x="114" y="770" width="26" height="30" index="0" traits="Image"/>
+                                            </XCUIElementTypeButton>
+                                            <XCUIElementTypeButton type="XCUIElementTypeButton" name="Sports" label="Sports" enabled="true" visible="true" accessible="true" x="155" y="765" width="75" height="54" index="2" traits="Button">
+                                                <XCUIElementTypeImage type="XCUIElementTypeImage" name="sportscourt.fill" label="sportscourt.fill" enabled="true" visible="true" accessible="false" x="174" y="772" width="37" height="26" index="0" traits="Image"/>
+                                            </XCUIElementTypeButton>
+                                            <XCUIElementTypeButton type="XCUIElementTypeButton" name="Audio" label="Audio" enabled="true" visible="true" accessible="true" x="221" y="765" width="74" height="54" index="3" traits="Button">
+                                                <XCUIElementTypeImage type="XCUIElementTypeImage" name="headphones" label="audiobook" enabled="true" visible="true" accessible="false" x="243" y="770" width="30" height="29" index="0" traits="Image"/>
+                                            </XCUIElementTypeButton>
+                                        </XCUIElementTypeOther>
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="765" width="74" height="54" index="2" traits="">
+                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="765" width="74" height="54" index="0" traits="">
+                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="765" width="74" height="54" index="0" traits=""/>
+                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="765" width="74" height="54" index="1" traits="">
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="765" width="74" height="54" index="0" traits="">
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="765" width="74" height="54" index="0" traits="">
+                                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="765" width="74" height="54" index="0" traits=""/>
+                                                        </XCUIElementTypeOther>
+                                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="765" width="74" height="54" index="1" traits=""/>
+                                                    </XCUIElementTypeOther>
+                                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="25" y="765" width="74" height="54" index="1" traits=""/>
+                                                </XCUIElementTypeOther>
+                                            </XCUIElementTypeOther>
+                                        </XCUIElementTypeOther>
+                                    </XCUIElementTypeOther>
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="307" y="761" width="62" height="62" index="1" traits="">
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="307" y="761" width="62" height="62" index="0" traits="">
+                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="307" y="761" width="62" height="62" index="0" traits="">
+                                                <XCUIElementTypeButton type="XCUIElementTypeButton" name="Following" label="Following" enabled="true" visible="true" accessible="true" x="307" y="761" width="62" height="62" index="0" traits="Button">
+                                                    <XCUIElementTypeImage type="XCUIElementTypeImage" name="magnifyingglass.square.stack.fill" enabled="true" visible="true" accessible="false" x="326" y="777" width="25" height="30" index="0" traits="Image"/>
+                                                </XCUIElementTypeButton>
+                                            </XCUIElementTypeOther>
+                                        </XCUIElementTypeOther>
+                                    </XCUIElementTypeOther>
+                                </XCUIElementTypeTabBar>
+                            </XCUIElementTypeOther>
+                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="1" traits="">
+                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="0" traits="">
+                                    <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="0" traits="">
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="0" traits="">
+                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="0" traits="">
+                                                <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="0" traits=""/>
+                                            </XCUIElementTypeOther>
+                                        </XCUIElementTypeOther>
+                                        <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="1" traits="">
+                                            <XCUIElementTypeOther type="XCUIElementTypeOther" enabled="true" visible="true" accessible="false" x="0" y="761" width="390" height="83" index="0" traits=""/>
+                                        </XCUIElementTypeOther>
+                                    </XCUIElementTypeOther>
+                                </XCUIElementTypeOther>
+                            </XCUIElementTypeOther>
+                        </XCUIElementTypeOther>
+                    </XCUIElementTypeOther>
+                </XCUIElementTypeOther>
+            </XCUIElementTypeOther>
+        </XCUIElementTypeWindow>
+    </XCUIElementTypeApplication>
+</AppiumAUT>
