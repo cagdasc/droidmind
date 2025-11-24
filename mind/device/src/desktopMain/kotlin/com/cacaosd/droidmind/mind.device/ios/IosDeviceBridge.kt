@@ -1,6 +1,5 @@
 package com.cacaosd.droidmind.mind.device.ios
 
-import com.cacaosd.droidmind.core.logging.Logger
 import com.kgit2.kommand.process.Command
 import com.kgit2.kommand.process.Stdio
 import io.appium.java_client.appmanagement.ApplicationState
@@ -39,13 +38,20 @@ class IosDeviceBridge(private val json: Json) {
     }
 
     fun launchApp(udid: String, bundleId: String) {
-        val driver = getDriver(udid)
-        driver.activateApp(bundleId)
+        useDriver(udid) {
+            it.activateApp(bundleId)
+        }
     }
 
-    fun getDriver(udid: String): IOSDriver {
+    fun <T> useDriver(udid: String, block: (IOSDriver) -> T): T {
         val options = XCUITestOptions().apply { setUdid(udid) }
-        return IOSDriver(URI("http://192.168.0.59:4723").toURL(), options)
+        val driver = IOSDriver(URI("http://192.168.0.59:4723").toURL(), options)
+
+        try {
+            return block(driver)
+        } finally {
+            driver.quit()
+        }
     }
 
     fun sendInput(input: String, serial: String): Boolean {
@@ -72,29 +78,28 @@ class IosDeviceBridge(private val json: Json) {
             .wait() == 0
     }
 
-    fun swipe(startX: Int, startY: Int, endX: Int, endY: Int, serial: String): Boolean {
-        return Command("idb")
-            .args(
-                listOf(
-                    "ui", "swipe",
-                    startX.toString(), startY.toString(),
-                    endX.toString(), endY.toString(),
-                    "--udid", serial,
-                    "--delta", "1"
+    fun swipe(startX: Int, startY: Int, endX: Int, endY: Int, durationMs: Long, serial: String) {
+        useDriver(serial) { driver ->
+            driver.executeScript(
+                "mobile: dragFromToForDuration",
+                mapOf(
+                    "duration" to durationMs / 1000.0,
+                    "fromX" to startX,
+                    "fromY" to startY,
+                    "toX" to endX,
+                    "toY" to endY
                 )
             )
-            .stdout(Stdio.Null)
-            .spawn()
-            .wait() == 0
+        }
     }
 
     suspend fun waitForAppToBeInForeground(serial: String, packageName: String) = withTimeoutOrNull(5000) {
-        val driver = getDriver(serial)
         while (isActive) {
             delay(250)
-            if (driver.queryAppState(packageName).also {
-                    Logger.debug("App $packageName state on device $serial: $it")
-                } == ApplicationState.RUNNING_IN_FOREGROUND) {
+            val appState = useDriver(serial) { driver ->
+                driver.queryAppState(packageName)
+            }
+            if (appState == ApplicationState.RUNNING_IN_FOREGROUND) {
                 return@withTimeoutOrNull true
             }
         }

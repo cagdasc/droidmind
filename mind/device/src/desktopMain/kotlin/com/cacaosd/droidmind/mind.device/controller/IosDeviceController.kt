@@ -37,7 +37,7 @@ class IosDeviceController(
 ) : DeviceController {
     override suspend fun getDevices(): List<DeviceInfo> {
         return iOSDeviceBridge.getDevices().filter { it.state == DeviceState.Booted }.map {
-            val batteryInfo = iOSDeviceBridge.getDriver(udid = it.udid).batteryInfo
+            val batteryInfo = iOSDeviceBridge.useDriver(it.udid) { driver -> driver.batteryInfo }
             DeviceInfo(
                 name = it.name,
                 serial = it.udid,
@@ -62,8 +62,7 @@ class IosDeviceController(
 
     override suspend fun getUiDumpFile(packageName: String, serial: String?): File? {
         val serial = serial ?: error("Serial cannot be null for iOS devices")
-        val driver = iOSDeviceBridge.getDriver(serial)
-        val pageSource = driver.pageSource
+        val pageSource = iOSDeviceBridge.useDriver(serial) { it.pageSource }
 
         val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.millis())
         val xmlName = "uidump_${packageName}_$timestamp.xml"
@@ -105,8 +104,8 @@ class IosDeviceController(
 
     override suspend fun deviceSize(serial: String?): String {
         val serial = serial ?: error("Serial cannot be null for iOS devices")
-        val driver = iOSDeviceBridge.getDriver(serial)
-        val size = driver.manage().window().size
+        val window = iOSDeviceBridge.useDriver(serial) { it.manage().window() }
+        val size = window.size
         return "${size.width}x${size.height}"
     }
 
@@ -123,10 +122,8 @@ class IosDeviceController(
         val serial = serial ?: error("Serial cannot be null for iOS devices")
 
         val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.millis())
-
-        val driver = iOSDeviceBridge.getDriver(serial)
-        driver.getScreenshotAs(
-            object : OutputType<File> {
+        iOSDeviceBridge.useDriver(serial) { driver ->
+            driver.getScreenshotAs(object : OutputType<File> {
                 override fun convertFromBase64Png(base64Png: String): File {
                     return save(OutputType.BYTES.convertFromBase64Png(base64Png))
                 }
@@ -144,9 +141,8 @@ class IosDeviceController(
                         throw WebDriverException(e)
                     }
                 }
-            }
-        )
-
+            })
+        }
         return "Screenshot file name is ${timestamp}.png"
     }
 
@@ -159,7 +155,7 @@ class IosDeviceController(
         serial: String?
     ): String {
         serial ?: error("Serial cannot be null for iOS devices")
-        iOSDeviceBridge.swipe(startX, startY, endX, endY, serial)
+        iOSDeviceBridge.swipe(startX, startY, endX, endY, durationMs, serial)
         return "Swiped from ($startX, $startY) to ($endX, $endY)"
     }
 
