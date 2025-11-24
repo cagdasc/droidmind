@@ -1,6 +1,5 @@
 package com.cacaosd.droidmind.mind.verifier
 
-import com.cacaosd.droidmind.mind.layout.model.Element
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import com.cacaosd.droidmind.mind.layout.model.flattenDfs
 import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
@@ -14,7 +13,7 @@ class UiTextVerifier(
         expectation: Expectation
     ): VerificationResult {
         val uiHierarchy = withContext(platformDispatchers.default) {
-            optimisedHierarchy.flattenDfs { it.type is Element.TextBased }
+            optimisedHierarchy.flattenDfs { it.type.canHaveText() }
         }
 
         val result = withContext(platformDispatchers.default) {

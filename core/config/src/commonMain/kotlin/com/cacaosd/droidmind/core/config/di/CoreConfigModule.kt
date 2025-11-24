@@ -13,26 +13,25 @@ abstract class SelfResolveQualifier : Qualifier {
         get() = TypeQualifier(this::class).value
 }
 
-val coreConfigModule = module {
-    single {
-        Json {
-            prettyPrint = true          // formatted output
-            isLenient = false            // allow non-strict JSON
-            ignoreUnknownKeys = true    // ignore fields not in your class
-            encodeDefaults = false       // include default values in output
-            explicitNulls = false
-            coerceInputValues = true
-        }
-    }
+val json = Json {
+    prettyPrint = true          // formatted output
+    isLenient = false            // allow non-strict JSON
+    ignoreUnknownKeys = true    // ignore fields not in your class
+    encodeDefaults = false       // include default values in output
+    explicitNulls = false
+    coerceInputValues = true
+}
 
-    single {
-        XML {
-            defaultPolicy {
-                ignoreUnknownChildren()
-            }
-            autoPolymorphic = true
-        }
+val xml = XML {
+    defaultPolicy {
+        ignoreUnknownChildren()
     }
+    autoPolymorphic = true
+}
+
+val coreConfigModule = module {
+    single { json }
+    single { xml }
 
     single {
         AppConfigManager(

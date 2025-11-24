@@ -23,7 +23,7 @@ val layoutModule = module {
     single(AndroidLayoutParserQualifier) {
         AndroidLayoutParser(
             xml = get(),
-            nodeOptimisationStrategy = get(AndroidLayoutNodeOptimisationStrategyQualifier)
+            uiAutomatorNodeOptimisationStrategy = get(AndroidLayoutNodeOptimisationStrategyQualifier)
         )
     } bind LayoutParser::class
 

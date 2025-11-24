@@ -1,10 +1,8 @@
-package com.cacaosd.droidmind.adb.layout_optimizer.strategy
+package com.cacaosd.droidmind.mind.layout.optimisation_strategy
 
-import com.cacaosd.droidmind.mind.layout.model.Hierarchy
-import com.cacaosd.droidmind.mind.layout.model.Node
-import com.cacaosd.droidmind.mind.layout.model.WdaNode
-import com.cacaosd.droidmind.mind.layout.optimisation_strategy.CollapseParentNodeStrategy
-import com.cacaosd.droidmind.mind.layout.parser.xmlParser
+import com.cacaosd.droidmind.core.config.di.xml
+import com.cacaosd.droidmind.mind.layout.model.android.UiAutomatorHierarchy
+import com.cacaosd.droidmind.mind.layout.model.android.UiAutomatorNode
 import kotlinx.serialization.decodeFromString
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,6 +10,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class CollapseParentNodeStrategyTest {
+
     private val strategy = CollapseParentNodeStrategy()
 
     private fun readFile(fileName: String): String {
@@ -20,12 +19,8 @@ class CollapseParentNodeStrategyTest {
         return stream.bufferedReader().use { it.readText() }
     }
 
-    private fun parseXmlToHierarchy(xmlContent: String): Hierarchy {
-        return xmlParser.decodeFromString(xmlContent)
-    }
-
-    private fun parseXmlToWda(xmlContent: String): WdaNode {
-        return xmlParser.decodeFromString(xmlContent)
+    private fun parseXmlToHierarchy(xmlContent: String): UiAutomatorHierarchy {
+        return xml.decodeFromString(xmlContent)
     }
 
     @Test
@@ -34,21 +29,12 @@ class CollapseParentNodeStrategyTest {
         val hierarchy = parseXmlToHierarchy(content)
         // basic sanity checks
         assertTrue(hierarchy.rotation.isNotEmpty())
-        assertTrue(hierarchy.node.index.isNotEmpty())
-    }
-
-    @Test
-    fun `parser reads ios ui_dump file`() {
-        val content = readFile("ios.xml").replace(Regex("""\\(["/ ])"""), "$1")
-
-        val wda = parseXmlToWda(content)
-        // basic sanity checks
-        println(wda)
+        assertTrue(hierarchy.uiAutomatorNode.index.isNotEmpty())
     }
 
     @Test
     fun `meaningful parent is preserved when it has content`() {
-        val child = Node(
+        val child = UiAutomatorNode(
             text = "child",
             resourceId = "",
             contentDesc = "",
@@ -59,7 +45,7 @@ class CollapseParentNodeStrategyTest {
             index = "1"
         )
 
-        val parent = Node(
+        val parent = UiAutomatorNode(
             text = "parent",
             resourceId = "",
             contentDesc = "",
@@ -78,7 +64,7 @@ class CollapseParentNodeStrategyTest {
 
     @Test
     fun `meaningless parent with single child collapses to child`() {
-        val child = Node(
+        val child = UiAutomatorNode(
             text = "child",
             resourceId = "",
             contentDesc = "",
@@ -89,7 +75,7 @@ class CollapseParentNodeStrategyTest {
             index = "5"
         )
 
-        val parent = Node(
+        val parent = UiAutomatorNode(
             text = "",
             resourceId = "",
             contentDesc = "",
@@ -109,7 +95,7 @@ class CollapseParentNodeStrategyTest {
 
     @Test
     fun `meaningless node with no children throws`() {
-        val node = Node(
+        val uiAutomatorNode = UiAutomatorNode(
             text = "",
             resourceId = "",
             contentDesc = "",
@@ -121,7 +107,7 @@ class CollapseParentNodeStrategyTest {
         )
 
         val ex = assertFailsWith<IllegalStateException> {
-            strategy.optimise(node)
+            strategy.optimise(uiAutomatorNode)
         }
         assertEquals("Node cannot be optimised.", ex.message)
     }

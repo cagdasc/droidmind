@@ -4,5 +4,5 @@ import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import java.io.File
 
 interface LayoutParser {
-    fun parse(uiDumpFile: File): OptimisedHierarchy?
+    fun parse(uiDumpFile: File): OptimisedHierarchy
 }

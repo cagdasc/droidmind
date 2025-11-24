@@ -1,4 +1,4 @@
-package com.cacaosd.droidmind.mind.layout.model
+package com.cacaosd.droidmind.mind.layout.model.ios
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -43,17 +43,19 @@ internal object WdaNodeSerializer : KSerializer<WdaNode> {
 
 
         return WdaNode(
-            index = attributes["index"]?.toInt() ?: 0,
-            type = attributes["type"] ?: "",
-            name = attributes["name"] ?: "",
-            label = attributes["label"] ?: "",
+            index = attributes["index"]!!.toInt(),
+            type = attributes["type"]!!,
+            name = attributes["name"].orEmpty(),
+            label = attributes["label"].orEmpty(),
+            value = attributes["value"].orEmpty(),
+            traits = attributes["traits"].orEmpty(),
             enabled = attributes["enabled"]?.toBooleanStrictOrNull() ?: false,
             visible = attributes["visible"]?.toBooleanStrictOrNull() ?: false,
             accessible = attributes["accessible"]?.toBooleanStrictOrNull() ?: false,
-            x = attributes["x"]?.toInt() ?: 0,
-            y = attributes["y"]?.toInt() ?: 0,
-            width = attributes["width"]?.toInt() ?: 0,
-            height = attributes["height"]?.toInt() ?: 0,
+            x = attributes["x"]?.toInt()!!,
+            y = attributes["y"]?.toInt()!!,
+            width = attributes["width"]?.toInt()!!,
+            height = attributes["height"]?.toInt()!!,
             children = children
         )
     }
