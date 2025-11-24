@@ -43,8 +43,8 @@ internal object WdaNodeSerializer : KSerializer<WdaNode> {
 
 
         return WdaNode(
-            index = attributes["index"]!!.toInt(),
-            type = attributes["type"]!!,
+            index = attributes["index"]?.toInt() ?: 0,
+            type = attributes["type"].orEmpty(),
             name = attributes["name"].orEmpty(),
             label = attributes["label"].orEmpty(),
             value = attributes["value"].orEmpty(),
@@ -52,10 +52,10 @@ internal object WdaNodeSerializer : KSerializer<WdaNode> {
             enabled = attributes["enabled"]?.toBooleanStrictOrNull() ?: false,
             visible = attributes["visible"]?.toBooleanStrictOrNull() ?: false,
             accessible = attributes["accessible"]?.toBooleanStrictOrNull() ?: false,
-            x = attributes["x"]?.toInt()!!,
-            y = attributes["y"]?.toInt()!!,
-            width = attributes["width"]?.toInt()!!,
-            height = attributes["height"]?.toInt()!!,
+            x = attributes["x"]?.toInt() ?: 0,
+            y = attributes["y"]?.toInt() ?: 0,
+            width = attributes["width"]?.toInt() ?: 0,
+            height = attributes["height"]?.toInt() ?: 0,
             children = children
         )
     }
