@@ -1,7 +1,9 @@
 package com.cacaosd.droidmind.mind.verifier
 
+import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
+
 interface Verifier {
-    suspend fun verify(serial: String, packageName: String, expectation: Expectation): VerificationResult
+    suspend fun verify(optimisedHierarchy: OptimisedHierarchy, expectation: Expectation): VerificationResult
 }
 
 sealed class Expectation(open val value: String) {

@@ -58,11 +58,15 @@ koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-view
 ai-koog = { module = "ai.koog:koog-agents", version.ref = "koog-version" }
 
 # Tools
+# Android
 android-tools-ddms = { module = "com.android.tools.ddms:ddmlib", version.ref = "android-ddms-version" }
 android-tools-adblib = { module = "com.android.tools.adblib:adblib", version.ref = "adblib-version" }
 android-tools-sdklib = { module = "com.android.tools:sdklib", version.ref = "android-tools-version" }
 android-tools-common = { module = "com.android.tools:common", version.ref = "android-tools-version" }
 android-tools-sdk-common = { module = "com.android.tools:sdk-common", version.ref = "android-tools-version" }
+
+appium-java-client = { module = "io.appium:java-client", version = "10.0.0" }
+kommand = { module = "com.kgit2:kommand", version = "2.3.0" }
 
 # multiplatform
 platform-coroutines = { module = "com.cacaosd.platform:coroutines" }

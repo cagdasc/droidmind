@@ -15,6 +15,8 @@ kotlin {
             implementation(project(":mind:layout"))
             implementation(libs.platform.coroutines)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.koin.core)
         }
 
         commonTest.dependencies {
@@ -27,6 +29,9 @@ kotlin {
                 implementation(libs.android.tools.sdklib)
                 implementation(libs.android.tools.common)
                 implementation(libs.android.tools.sdk.common)
+
+                implementation(libs.appium.java.client)
+                implementation(libs.kommand)
             }
         }
 

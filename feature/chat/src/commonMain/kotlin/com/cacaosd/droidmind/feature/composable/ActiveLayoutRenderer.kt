@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import com.cacaosd.droidmind.mind.layout.model.Element
+import com.cacaosd.droidmind.mind.layout.model.ElementType
 import com.cacaosd.droidmind.mind.layout.model.Rect
 import com.cacaosd.droidmind.mind.layout.model.UiElement
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -34,13 +34,23 @@ internal fun ActiveLayoutRenderer(modifier: Modifier, rootElement: UiElement) {
             val width = (elementBounds.right - elementBounds.left) * scale
             val height = (elementBounds.bottom - elementBounds.top) * scale
 
-            val color = when (element.type) {
-                is Element.TextBased.Label -> Color(0x40_2196F3) // Blue → static text
-                is Element.TextBased.InputField -> Color(0x40_4CAF50) // Green → editable field
-                is Element.TextBased.Button -> Color(0x40_F44336) // Red → actionable element
-                is Element.TextBased.ViewGroup -> Color(0x40_FFC107) // Amber → grouping view
-                is Element.Container -> Color(0x40_9C27B0) // Purple → layout container
-                is Element.Unknown -> Color(0x40_9E9E9E) // Gray → undefined/other
+            val type = element.type
+            val color = when (type) {
+                in ElementType.TEXTUAL -> {
+                    Color(0x40_2196F3)
+                }
+
+                in ElementType.INTERACTIVE -> {
+                    Color(0x40_4CAF50)
+                }
+
+                in ElementType.CONTAINERS -> {
+                    Color(0x40_9C27B0)
+                }
+
+                else -> {
+                    Color(0x40_9E9E9E)
+                }
             }
 
             drawRect(color, Offset(left, top), Size(width, height))
@@ -57,7 +67,7 @@ internal fun ActiveLayoutRenderer(modifier: Modifier, rootElement: UiElement) {
 @Composable
 private fun ActiveLayoutRendererPreview() {
     val sampleUiElement = UiElement(
-        type = Element.Container,
+        type = ElementType.Column,
         text = null,
         contentDescription = null,
         bounds = Rect(0, 0, 400, 800),
@@ -66,7 +76,7 @@ private fun ActiveLayoutRendererPreview() {
         enabled = true,
         children = listOf(
             UiElement(
-                type = Element.TextBased.Button,
+                type = ElementType.Button,
                 text = "Click Me",
                 contentDescription = "A button",
                 bounds = Rect(50, 100, 200, 150),
@@ -75,7 +85,7 @@ private fun ActiveLayoutRendererPreview() {
                 enabled = true
             ),
             UiElement(
-                type = Element.TextBased.InputField,
+                type = ElementType.TextInput,
                 text = "",
                 contentDescription = "Input Field",
                 bounds = Rect(50, 200, 350, 250),

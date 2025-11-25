@@ -23,7 +23,7 @@ enum class ScreenRotation(val value: Int, val description: String) {
 
 @Serializable
 data class UiElement(
-    val type: Element,
+    val type: ElementType,
     val text: String?,
     val contentDescription: String?,
     val bounds: Rect,
@@ -32,31 +32,6 @@ data class UiElement(
     val enabled: Boolean,
     val children: List<UiElement> = emptyList()
 )
-
-@Serializable
-sealed class Element {
-
-    @Serializable
-    sealed class TextBased : Element() {
-        @Serializable
-        data object Label : TextBased()
-
-        @Serializable
-        data object InputField : TextBased()
-
-        @Serializable
-        data object Button : TextBased()
-
-        @Serializable
-        data object ViewGroup : TextBased()
-    }
-
-    @Serializable
-    data object Container : Element()
-
-    @Serializable
-    object Unknown : Element()
-}
 
 @Serializable
 data class Rect(val left: Int, val top: Int, val right: Int, val bottom: Int)

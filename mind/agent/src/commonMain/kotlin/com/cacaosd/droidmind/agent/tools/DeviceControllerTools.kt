@@ -3,7 +3,7 @@ package com.cacaosd.droidmind.agent.tools
 import ai.koog.agents.core.tools.annotations.LLMDescription
 import ai.koog.agents.core.tools.annotations.Tool
 import ai.koog.agents.core.tools.reflect.ToolSet
-import com.cacaosd.droidmind.agent.tools.description.DeviceControllerToolsConstant
+import com.cacaosd.droidmind.domain.tools.DeviceControllerToolsConstant
 import com.cacaosd.droidmind.mind.device.controller.DeviceController
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 
@@ -57,21 +57,91 @@ class DeviceControllerTools(private val deviceController: DeviceController) : To
     @LLMDescription(DeviceControllerToolsConstant.SCREENSHOT_TOOL_DESC)
     suspend fun screenshot(serial: String?): String = deviceController.screenshot(serial = serial)
 
-    @Tool(DeviceControllerToolsConstant.SWIPE_TOOL)
-    @LLMDescription(DeviceControllerToolsConstant.SWIPE_TOOL_DESC)
-    suspend fun swipe(
+    @Tool(DeviceControllerToolsConstant.SCROLL_DOWN_TOOL)
+    @LLMDescription(DeviceControllerToolsConstant.SCROLL_DOWN_TOOL_DESC)
+    suspend fun scrollDown(
         startX: Int,
         startY: Int,
         endX: Int,
         endY: Int,
         durationMs: Long,
         serial: String?
-    ): String = deviceController.swipe(
-        startX = startX,
-        startY = startY,
-        endX = endX,
-        endY = endY,
-        durationMs = durationMs,
-        serial = serial
-    )
+    ): String {
+        require(startX == endX) { "For scroll down, startX must be equal to endX." }
+        require(endY > startY) { "For scroll down, endY must be greater than startY." }
+        return deviceController.swipe(
+            startX = startX,
+            startY = startY,
+            endX = endX,
+            endY = endY,
+            durationMs = durationMs,
+            serial = serial
+        )
+    }
+
+    @Tool(DeviceControllerToolsConstant.SCROLL_UP_TOOL)
+    @LLMDescription(DeviceControllerToolsConstant.SCROLL_UP_TOOL_DESC)
+    suspend fun scrollUp(
+        startX: Int,
+        startY: Int,
+        endX: Int,
+        endY: Int,
+        durationMs: Long,
+        serial: String?
+    ): String {
+        require(startX == endX) { "For scroll up, startX must be equal to endX." }
+        require(endY < startY) { "For scroll up, endY must be less than startY." }
+        return deviceController.swipe(
+            startX = startX,
+            startY = startY,
+            endX = endX,
+            endY = endY,
+            durationMs = durationMs,
+            serial = serial
+        )
+    }
+
+    @Tool(DeviceControllerToolsConstant.SCROLL_RIGHT_TOOL)
+    @LLMDescription(DeviceControllerToolsConstant.SCROLL_RIGHT_TOOL_DESC)
+    suspend fun scrollRight(
+        startX: Int,
+        startY: Int,
+        endX: Int,
+        endY: Int,
+        durationMs: Long,
+        serial: String?
+    ): String {
+        require(startY == endY) { "For scroll right, startY must be equal to endY." }
+        require(endX > startX) { "For scroll right, endX must be greater than startX." }
+        return deviceController.swipe(
+            startX = startX,
+            startY = startY,
+            endX = endX,
+            endY = endY,
+            durationMs = durationMs,
+            serial = serial
+        )
+    }
+
+    @Tool(DeviceControllerToolsConstant.SCROLL_LEFT_TOOL)
+    @LLMDescription(DeviceControllerToolsConstant.SCROLL_LEFT_TOOL_DESC)
+    suspend fun scrollLeft(
+        startX: Int,
+        startY: Int,
+        endX: Int,
+        endY: Int,
+        durationMs: Long,
+        serial: String?
+    ): String {
+        require(startY == endY) { "For scroll, startY must be equal to endY." }
+        require(endX < startX) { "For scroll left, endX must be less than startX." }
+        return deviceController.swipe(
+            startX = startX,
+            startY = startY,
+            endX = endX,
+            endY = endY,
+            durationMs = durationMs,
+            serial = serial
+        )
+    }
 }
