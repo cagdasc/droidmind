@@ -1,23 +1,42 @@
 [versions]
-androidx-lifecycle = "2.8.4"
-compose-multiplatform = "1.7.0"
-composeHotReload = "1.0.0-alpha10"
-junit = "4.13.2"
+# Kotlin core
 kotlin = "2.1.21"
 kotlinx-serialization = "1.9.0"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.6.2"
-koin-version = "4.0.2"
-ktor-version = "3.0.3"
+
+# Compose
+compose-multiplatform = "1.8.1"
+composeHotReload = "1.1.0-alpha03"
+
+# Android / Lifecycle / AGP
+androidx-lifecycle = "2.8.4"
 lifecycleServiceVersion = "2.9.4"
-logback-version = "1.5.19"
-kotlin-logging-version = "7.0.13"
-koog-version = "0.5.1"
-xmlutil-version = "0.91.1"
+agpVersion = "8.11.1"
+android-tools-version = "31.1.1"
 android-ddms-version = "31.10.1"
 adblib-version = "8.11.1"
-android-tools-version = "31.1.1"
-agpVersion = "8.11.1"
+
+# Testing
+junit = "4.13.2"
+
+# Dependency injection
+koin-version = "4.0.2"
+
+# Networking
+ktor-version = "3.0.3"
+
+# Logging & runtime
+logback-version = "1.5.19"
+kotlin-logging-version = "7.0.13"
+
+# Misc / Libraries
+koog-version = "0.5.1"
+xmlutil-version = "0.91.1"
+
+# Multiplatform
+multiplatform-shared-version = "0.0.1"
+multiplatform-uikit-version = "0.0.3"
 
 [libraries]
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
@@ -69,8 +88,9 @@ appium-java-client = { module = "io.appium:java-client", version = "10.0.0" }
 kommand = { module = "com.kgit2:kommand", version = "2.3.0" }
 
 # multiplatform
-platform-coroutines = { module = "com.cacaosd.platform:coroutines" }
-platform-coroutines-di = { module = "com.cacaosd.platform:coroutines-di" }
+platform-coroutines = { module = "com.github.cagdasc.multiplatform-shared:coroutines", version.ref = "multiplatform-shared-version" }
+platform-coroutines-di = { module = "com.github.cagdasc.multiplatform-shared:coroutines-di", version.ref = "multiplatform-shared-version" }
+ui-theme = { module = "com.github.cagdasc.multiplatform-uikit:theme", version.ref = "multiplatform-uikit-version" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

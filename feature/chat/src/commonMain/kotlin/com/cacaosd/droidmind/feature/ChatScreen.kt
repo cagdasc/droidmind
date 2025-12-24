@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.cacaosd.droidmind.feature.composable.ActiveLayoutRenderer
 import com.cacaosd.droidmind.feature.composable.ChipFlowRow
 import com.cacaosd.droidmind.feature.composable.GenericDropdown
-import com.cacaosd.droidmind.ui_theme.AppTheme
+import com.cacaosd.uikit.theme.AppTheme
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 @Composable

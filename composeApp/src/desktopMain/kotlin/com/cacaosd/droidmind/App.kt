@@ -8,8 +8,8 @@ import com.cacaosd.droidmind.di.featureModule
 import com.cacaosd.droidmind.di.mainModule
 import com.cacaosd.droidmind.feature.ChatScreenBranch
 import com.cacaosd.droidmind.feature.ChatViewModel
-import com.cacaosd.droidmind.ui_theme.AppTheme
 import com.cacaosd.platform.coroutines.di.platformCoroutines
+import com.cacaosd.uikit.theme.AppTheme
 import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
 
