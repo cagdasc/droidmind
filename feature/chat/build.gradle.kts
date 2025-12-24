@@ -16,7 +16,8 @@ kotlin {
             implementation(project(":mind:device"))
             implementation(project(":mind:layout"))
             implementation(project(":mind:domain"))
-            implementation(project(":ui:theme"))
+
+            implementation(libs.ui.theme)
 
             implementation(compose.runtime)
             implementation(compose.foundation)

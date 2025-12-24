@@ -11,7 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.cacaosd.droidmind.ui_theme.AppTheme
+import com.cacaosd.uikit.theme.AppTheme
 
 @Composable
 fun <T> ChipFlowRow(

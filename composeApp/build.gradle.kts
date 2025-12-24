@@ -23,7 +23,8 @@ kotlin {
             implementation(project(":mind:verifier"))
             implementation(project(":mind:agent"))
             implementation(project(":mind:domain"))
-            implementation(project(":ui:theme"))
+
+            implementation(libs.ui.theme)
 
             implementation(libs.platform.coroutines)
             implementation(libs.platform.coroutines.di)
