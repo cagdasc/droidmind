@@ -55,7 +55,7 @@ class ChatViewModel(
                 remove(action.chipItem)
             }
             when (action.chipItem) {
-                is DeviceData -> {
+                is ChipItem.Device -> {
                     installedAppsJob?.cancel()
                     state.copy(
                         selectedDevice = null,
@@ -65,15 +65,11 @@ class ChatViewModel(
                     )
                 }
 
-                is InstalledApp -> {
+                is ChipItem.App -> {
                     state.copy(
                         selectedApp = null,
                         chipItems = chipItems
                     )
-                }
-
-                else -> {
-                    state
                 }
             }
         }
@@ -207,7 +203,7 @@ class ChatViewModel(
 
     private fun setSelectedDevice(deviceData: DeviceData) {
         _chatScreenUiState.update { state ->
-            state.copy(selectedDevice = deviceData, selectedApp = null, chipItems = setOf(deviceData))
+            state.copy(selectedDevice = deviceData, selectedApp = null, chipItems = setOf(ChipItem.Device(deviceData)))
         }
 
         installedAppsJob?.cancel()
@@ -216,8 +212,9 @@ class ChatViewModel(
 
     private fun setSelectedApp(installedApp: InstalledApp) {
         _chatScreenUiState.update { state ->
-            val deviceData = state.chipItems.find { it is DeviceData } ?: error("DeviceData should always be present.")
-            state.copy(selectedApp = installedApp, chipItems = setOf(deviceData, installedApp))
+            val deviceData =
+                state.chipItems.find { it is ChipItem.Device } ?: error("DeviceData should always be present.")
+            state.copy(selectedApp = installedApp, chipItems = setOf(deviceData, ChipItem.App(installedApp)))
         }
     }
 

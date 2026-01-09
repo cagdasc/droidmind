@@ -26,20 +26,15 @@ data class DeviceData(
     val screenWidth: Int,
     val screenHeight: Int,
     val osVersion: String = "",
-) : ChipItem {
-    override val label: String
-        get() = name
-}
+)
 
 data class InstalledApp(
     val packageName: String,
-) : ChipItem {
-    override val label: String
-        get() = packageName
-}
+)
 
-interface ChipItem {
-    val label: String
+sealed class ChipItem(val label: String) {
+    data class Device(val deviceData: DeviceData) : ChipItem(label = deviceData.name)
+    data class App(val installedApp: InstalledApp) : ChipItem(label = installedApp.packageName)
 }
 
 sealed class ExecutionState {
