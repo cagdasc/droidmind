@@ -1,4 +1,4 @@
-package com.cacaosd.droidmind.feature.usecase
+package com.cacaosd.droidmind.feature.automation_runner.usecase
 
 import com.cacaosd.droidmind.mind.device.controller.DeviceController
 import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers

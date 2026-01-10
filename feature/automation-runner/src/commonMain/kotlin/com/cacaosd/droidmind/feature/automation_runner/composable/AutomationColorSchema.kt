@@ -1,4 +1,4 @@
-package com.cacaosd.droidmind.feature
+package com.cacaosd.droidmind.feature.automation_runner.composable
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme

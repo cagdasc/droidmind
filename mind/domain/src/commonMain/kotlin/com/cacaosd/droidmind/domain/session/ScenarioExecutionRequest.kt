@@ -1,6 +1,6 @@
 package com.cacaosd.droidmind.domain.session
 
-data class ScenarioExecution(
+data class ScenarioExecutionRequest(
     val deviceSerial: String?,
     val packageName: String,
     val scenario: String,
@@ -17,11 +17,11 @@ data class ScenarioExecution(
         fun scenario(scenario: String) = apply { this.scenario = scenario }
         fun expectation(expectation: String?) = apply { this.expectation = expectation }
 
-        fun build(): ScenarioExecution {
+        fun build(): ScenarioExecutionRequest {
             val serial = deviceSerial ?: throw IllegalStateException("deviceSerial is required")
             val pkg = packageName ?: throw IllegalStateException("packageName is required")
             val sc = scenario ?: throw IllegalStateException("scenario is required")
-            return ScenarioExecution(
+            return ScenarioExecutionRequest(
                 deviceSerial = deviceSerial,
                 packageName = pkg,
                 scenario = """

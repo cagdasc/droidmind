@@ -7,7 +7,7 @@ import ai.koog.prompt.llm.OllamaModels
 
 fun provideGoogleAgentBuilder(apiKey: String): AgentClientBuilder {
     return AgentClientBuilder.create(
-        llmModel = GoogleModels.Gemini2_0Flash,
+        llmModel = GoogleModels.Gemini2_5Flash,
         executor = simpleGoogleAIExecutor(apiKey)
     )
 }

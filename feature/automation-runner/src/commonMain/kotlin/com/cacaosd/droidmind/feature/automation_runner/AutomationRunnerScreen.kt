@@ -1,18 +1,19 @@
 package com.cacaosd.droidmind.feature.automation_runner
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -24,10 +25,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cacaosd.droidmind.feature.*
-import com.cacaosd.droidmind.feature.composable.ChipFlowRow
-import com.cacaosd.droidmind.feature.composable.GenericDropdown
+import com.cacaosd.droidmind.feature.automation_runner.composable.ChipFlowRow
+import com.cacaosd.droidmind.feature.automation_runner.composable.GenericDropdown
+import com.cacaosd.droidmind.feature.automation_runner.composable.colorSchemeProvider
 import com.cacaosd.uikit.theme.AppTheme
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun AutomationRunnerScreen(automationRunnerViewModel: AutomationRunnerViewModel) {
@@ -58,16 +60,16 @@ private fun InternalAutomationRunnerScreen(
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 24.dp, vertical = 0.dp)
-                    .padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    .padding(horizontal = AppTheme.sizes.xxlarge)
+                    .padding(bottom = AppTheme.sizes.xxlarge),
+                horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.xxlarge)
             ) {
                 ScenarioPanel(automationRunnerUiState, modifier = Modifier.weight(1f), onAction = onAction)
 
                 DevicePreviewPanel(modifier = Modifier.width(300.dp))
             }
 
-            ConsolePanel(automationRunnerUiState, modifier = Modifier.height(192.dp))
+            ConsolePanel(automationRunnerUiState, modifier = Modifier.height(280.dp))
         }
     }
 }
@@ -96,6 +98,10 @@ private fun SidebarPanel(
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleLarge,
                 )
+
+                IconButton(onClick = { onAction(AutomationRunnerAction.AddScenarioClicked) }) {
+                    Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                }
             }
 
             Spacer(modifier = Modifier.height(AppTheme.sizes.xxlarge))
@@ -146,6 +152,7 @@ private fun ScenarioCard(automationScenario: AutomationScenario) {
 
     Surface(
         modifier = Modifier
+            .clip(MaterialTheme.shapes.medium)
             .fillMaxWidth()
             .clickable { },
         color = backgroundColor,
@@ -280,7 +287,7 @@ private fun ScenarioPanel(
             value = automationRunnerUiState.selectedAutomationScenario?.prompt.orEmpty(),
             onValueChange = {
                 automationRunnerUiState.selectedAutomationScenario?.let { scenario ->
-                    onAction(AutomationRunnerAction.UpdateScenario(scenario.copy(prompt = it)))
+                    onAction(AutomationRunnerAction.UpdatePrompt(it))
                 }
 
             },
@@ -517,14 +524,23 @@ private fun ConsolePanel(automationRunnerUiState: AutomationRunnerUiState, modif
                 }
             }
 
+            val entries = automationRunnerUiState.selectedAutomationScenario?.messages ?: emptyList()
+            val listState = rememberLazyListState()
+            LaunchedEffect(entries.size) {
+                if (entries.isNotEmpty()) {
+                    listState.animateScrollToItem(entries.lastIndex)
+                }
+            }
+
             // Console content
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(AppTheme.sizes.medium),
+                state = listState,
                 verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.small)
             ) {
-                items(automationRunnerUiState.selectedAutomationScenario?.messages ?: emptyList()) { entry ->
+                items(entries) { entry ->
                     LogEntryRow(entry)
                 }
             }

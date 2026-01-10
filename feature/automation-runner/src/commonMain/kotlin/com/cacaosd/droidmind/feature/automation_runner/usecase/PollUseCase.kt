@@ -1,4 +1,4 @@
-package com.cacaosd.droidmind.feature.usecase
+package com.cacaosd.droidmind.feature.automation_runner.usecase
 
 import com.cacaosd.droidmind.core.logging.Logger
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -19,7 +19,7 @@ class PollUseCase {
                 emit(value)
             }
         }.catch { error ->
-            Logger.error("Error while polling for connected devices", error)
+            Logger.error("Error while polling", error)
         }
     }
 }

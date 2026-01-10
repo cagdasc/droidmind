@@ -10,15 +10,15 @@ import ai.koog.agents.features.tokenizer.feature.MessageTokenizer
 import ai.koog.prompt.executor.llms.SingleLLMPromptExecutor
 import ai.koog.prompt.executor.ollama.client.OllamaClient
 import ai.koog.prompt.executor.ollama.client.toLLModel
+import ai.koog.prompt.message.Message
 import ai.koog.prompt.tokenizer.SimpleRegexBasedTokenizer
 import com.cacaosd.droidmind.agent.event.EventMapper
 import com.cacaosd.droidmind.core.logging.Logger
 import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.domain.AgentClientFactory
+import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.McpMessage
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.runBlocking
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -26,7 +26,8 @@ class DefaultAgentClientFactory(
     private val toolRegistry: ToolRegistry,
     private val aiAgentStrategy: AIAgentGraphStrategy<String, String>,
     private val eventMapper: EventMapper,
-    private val agentEventFlow: MutableSharedFlow<McpMessage>
+    private val agentMessageFlow: MutableSharedFlow<McpMessage>,
+    private val agentEventFlow: MutableSharedFlow<AgentEvent>,
 ) :
     AgentClientFactory {
     override fun createGoogleAgent(apiKey: String): AgentClient {
@@ -86,35 +87,102 @@ class DefaultAgentClientFactory(
         install(EventHandler) {
             onAgentStarting {
                 Logger.info("Agent is starting...")
+                agentEventFlow.emit(AgentEvent.Started)
             }
 
             onAgentCompleted {
                 Logger.info("Agent has finished execution.")
+                agentEventFlow.emit(AgentEvent.Completed)
+            }
+
+            onLLMCallStarting { context ->
+                val prompt = context.prompt
+                Logger.info("LLM Call Starting with prompt: $prompt")
+                prompt.messages.map { it.content }.forEach { message ->
+                    agentEventFlow.emit(AgentEvent.Prompt(content = message))
+                }
             }
 
             onLLMCallCompleted { context ->
                 val responses = context.responses
-                val mcpMessages = responses.map { response ->
+                val mcpMessages = responses.flatMap { response ->
                     eventMapper.mapToMcpMessages(response)
-                }.flatten()
+                }
+                mcpMessages.forEach { message -> agentMessageFlow.emit(message) }
 
-                agentEventFlow.emitAll(mcpMessages.asFlow())
+                responses.forEach { message ->
+                    val mcpMessage = when (message) {
+                        is Message.Assistant -> AgentEvent.Response.Assistant(
+                            content = message.content,
+                            finishReason = message.finishReason
+                        )
+
+                        is Message.Tool.Call -> AgentEvent.Response.ToolCall(
+                            toolName = message.tool,
+                            content = message.content
+                        )
+                    }
+
+                    val metadataMessage = AgentEvent.Token(
+                        inputTokensCount = message.metaInfo.inputTokensCount ?: 0,
+                        outputTokensCount = message.metaInfo.outputTokensCount ?: 0,
+                        totalTokensCount = message.metaInfo.totalTokensCount ?: 0
+                    )
+
+                    agentEventFlow.emit(metadataMessage)
+                    agentEventFlow.emit(mcpMessage)
+                }
             }
 
             onAgentExecutionFailed { context ->
                 val strategyName = context.runId
                 val throwable = context.throwable
-                agentEventFlow.emit(
+                agentMessageFlow.emit(
                     McpMessage.Response.AssistantWithError(
                         strategyName = strategyName,
                         throwable = throwable
                     )
                 )
+                agentEventFlow.emit(
+                    AgentEvent.Failure(
+                        reason = strategyName,
+                        throwable = throwable
+                    )
+                )
+            }
+
+            onToolCallFailed { context ->
+                val toolName = context.tool.name
+                val throwable = context.throwable
+                agentEventFlow.emit(
+                    AgentEvent.Failure(
+                        reason = toolName,
+                        throwable = throwable
+                    )
+                )
+            }
+
+            onToolValidationFailed { context ->
+                val toolName = context.tool.name
+                val error = context.error
+                agentEventFlow.emit(
+                    AgentEvent.Failure(
+                        reason = toolName,
+                        throwable = Throwable(error)
+                    )
+                )
             }
 
             onToolCallCompleted { context ->
-                agentEventFlow.emit(
+                agentMessageFlow.emit(
                     McpMessage.Response.ToolResult(
+                        toolName = context.tool.name,
+                        content = context.result
+                    )
+                )
+
+                agentEventFlow.emit(
+                    AgentEvent.Response.ToolResult(
                         toolName = context.tool.name,
                         content = context.result
                     )

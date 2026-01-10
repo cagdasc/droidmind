@@ -24,13 +24,16 @@ internal object CustomAgentQualifier : SelfResolveQualifier()
 
 object AgentMessageFlowQualifier : SelfResolveQualifier()
 
+data object AgentEventFlowQualifier : SelfResolveQualifier()
+
 val agentModule = module {
     single {
         DefaultAgentClientFactory(
             toolRegistry = get(),
             aiAgentStrategy = get(),
             eventMapper = get(),
-            agentEventFlow = get(AgentMessageFlowQualifier)
+            agentMessageFlow = get(AgentMessageFlowQualifier),
+            agentEventFlow = get(AgentEventFlowQualifier),
         )
     } bind AgentClientFactory::class
 

@@ -1,10 +1,5 @@
 package com.cacaosd.droidmind.feature.automation_runner
 
-import com.cacaosd.droidmind.feature.ChipItem
-import com.cacaosd.droidmind.feature.DeviceData
-import com.cacaosd.droidmind.feature.ExecutionState
-import com.cacaosd.droidmind.feature.InstalledApp
-
 data class AutomationRunnerUiState(
     val deviceDataList: List<DeviceData> = emptyList(),
     val installedApps: List<InstalledApp> = emptyList(),
@@ -37,4 +32,29 @@ data class LogEntry(
 enum class EntrySource {
     DEVICE,
     AGENT,
+}
+
+data class DeviceData(
+    val name: String,
+    val serial: String,
+    val batteryLevel: Int = 0,
+    val screenWidth: Int,
+    val screenHeight: Int,
+    val osVersion: String = "",
+)
+
+data class InstalledApp(
+    val packageName: String,
+)
+
+sealed class ChipItem(val label: String) {
+    data class Device(val deviceData: DeviceData) : ChipItem(label = deviceData.name)
+    data class App(val installedApp: InstalledApp) : ChipItem(label = installedApp.packageName)
+}
+
+sealed class ExecutionState {
+    data object Idle : ExecutionState()
+    data object Executing : ExecutionState()
+    data class Success(val message: String? = null) : ExecutionState()
+    data class Error(val error: Throwable) : ExecutionState()
 }

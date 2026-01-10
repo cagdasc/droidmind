@@ -1,7 +1,7 @@
 package com.cacaosd.droidmind.domain.session
 
 interface ScenarioExecutor {
-    suspend fun execute(request: ScenarioExecution) {
+    suspend fun execute(request: ScenarioExecutionRequest) {
         execute(
             deviceSerial = request.deviceSerial,
             packageName = request.packageName,

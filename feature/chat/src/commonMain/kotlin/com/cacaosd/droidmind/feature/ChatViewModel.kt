@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cacaosd.droidmind.core.logging.Logger
 import com.cacaosd.droidmind.domain.McpMessage
-import com.cacaosd.droidmind.domain.session.ScenarioExecution
+import com.cacaosd.droidmind.domain.session.ScenarioExecutionRequest
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
 import com.cacaosd.droidmind.domain.tools.DeviceControllerToolsConstant
 import com.cacaosd.droidmind.domain.tools.TestCaseVerifierToolsConstant
@@ -228,7 +228,7 @@ class ChatViewModel(
                 val userMessage = prompt
                 val serial = selectedDevice?.serial
                 val packageName = selectedApp?.packageName
-                val scenarioExecution = ScenarioExecution.builder()
+                val scenarioExecutionRequest = ScenarioExecutionRequest.builder()
                     .deviceSerial(serial)
                     .packageName(packageName)
                     .scenario(userMessage)
@@ -236,7 +236,7 @@ class ChatViewModel(
                     .build()
 
                 mcpMessageFlow.emit(McpMessage.Request.User(message = userMessage)).also {
-                    scenarioExecutor.execute(request = scenarioExecution)
+                    scenarioExecutor.execute(request = scenarioExecutionRequest)
                 }
             }
         }
