@@ -34,6 +34,7 @@ val agentModule = module {
             eventMapper = get(),
             agentMessageFlow = get(AgentMessageFlowQualifier),
             agentEventFlow = get(AgentEventFlowQualifier),
+            clock = get()
         )
     } bind AgentClientFactory::class
 

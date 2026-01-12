@@ -20,6 +20,8 @@ import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.McpMessage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.toKotlinInstant
+import java.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 
 class DefaultAgentClientFactory(
@@ -28,6 +30,7 @@ class DefaultAgentClientFactory(
     private val eventMapper: EventMapper,
     private val agentMessageFlow: MutableSharedFlow<McpMessage>,
     private val agentEventFlow: MutableSharedFlow<AgentEvent>,
+    private val clock: Clock
 ) :
     AgentClientFactory {
     override fun createGoogleAgent(apiKey: String): AgentClient {
@@ -87,19 +90,24 @@ class DefaultAgentClientFactory(
         install(EventHandler) {
             onAgentStarting {
                 Logger.info("Agent is starting...")
-                agentEventFlow.emit(AgentEvent.Started)
+                agentEventFlow.emit(AgentEvent.Started(timestamp = clock.instant().toKotlinInstant()))
             }
 
             onAgentCompleted {
                 Logger.info("Agent has finished execution.")
-                agentEventFlow.emit(AgentEvent.Completed)
+                agentEventFlow.emit(AgentEvent.Completed(timestamp = clock.instant().toKotlinInstant()))
             }
 
             onLLMCallStarting { context ->
                 val prompt = context.prompt
                 Logger.info("LLM Call Starting with prompt: $prompt")
                 prompt.messages.map { it.content }.forEach { message ->
-                    agentEventFlow.emit(AgentEvent.Prompt(content = message))
+                    agentEventFlow.emit(
+                        AgentEvent.Prompt(
+                            content = message,
+                            timestamp = clock.instant().toKotlinInstant()
+                        )
+                    )
                 }
             }
 
@@ -114,19 +122,22 @@ class DefaultAgentClientFactory(
                     val mcpMessage = when (message) {
                         is Message.Assistant -> AgentEvent.Response.Assistant(
                             content = message.content,
-                            finishReason = message.finishReason
+                            finishReason = message.finishReason,
+                            timestamp = message.metaInfo.timestamp
                         )
 
                         is Message.Tool.Call -> AgentEvent.Response.ToolCall(
                             toolName = message.tool,
-                            content = message.content
+                            content = message.content,
+                            timestamp = message.metaInfo.timestamp
                         )
                     }
 
                     val metadataMessage = AgentEvent.Token(
                         inputTokensCount = message.metaInfo.inputTokensCount ?: 0,
                         outputTokensCount = message.metaInfo.outputTokensCount ?: 0,
-                        totalTokensCount = message.metaInfo.totalTokensCount ?: 0
+                        totalTokensCount = message.metaInfo.totalTokensCount ?: 0,
+                        timestamp = message.metaInfo.timestamp
                     )
 
                     agentEventFlow.emit(metadataMessage)
@@ -146,7 +157,8 @@ class DefaultAgentClientFactory(
                 agentEventFlow.emit(
                     AgentEvent.Failure(
                         reason = strategyName,
-                        throwable = throwable
+                        throwable = throwable,
+                        timestamp = clock.instant().toKotlinInstant()
                     )
                 )
             }
@@ -157,7 +169,8 @@ class DefaultAgentClientFactory(
                 agentEventFlow.emit(
                     AgentEvent.Failure(
                         reason = toolName,
-                        throwable = throwable
+                        throwable = throwable,
+                        timestamp = clock.instant().toKotlinInstant()
                     )
                 )
             }
@@ -168,7 +181,8 @@ class DefaultAgentClientFactory(
                 agentEventFlow.emit(
                     AgentEvent.Failure(
                         reason = toolName,
-                        throwable = Throwable(error)
+                        throwable = Throwable(error),
+                        timestamp = clock.instant().toKotlinInstant()
                     )
                 )
             }
@@ -184,7 +198,8 @@ class DefaultAgentClientFactory(
                 agentEventFlow.emit(
                     AgentEvent.Response.ToolResult(
                         toolName = context.tool.name,
-                        content = context.result
+                        content = context.result,
+                        timestamp = clock.instant().toKotlinInstant()
                     )
                 )
             }

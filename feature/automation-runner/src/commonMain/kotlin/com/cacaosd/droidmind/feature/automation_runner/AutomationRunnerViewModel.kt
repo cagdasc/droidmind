@@ -2,7 +2,6 @@ package com.cacaosd.droidmind.feature.automation_runner
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cacaosd.droidmind.core.logging.Logger
 import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.session.ScenarioExecutionRequest
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
@@ -13,6 +12,9 @@ import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import java.text.NumberFormat
 import java.util.*
 
@@ -65,117 +67,97 @@ class AutomationRunnerViewModel(
     private fun collectAgentEvents() {
         agentEventFlow.onEach { event ->
             when (event) {
-                AgentEvent.Started -> {
+                is AgentEvent.Started -> {
                     _automationRunnerUiState.update { state ->
-                        val selectedScenario = state.selectedAutomationScenario?.let { scenario ->
-                            val messages = scenario.messages + LogEntry(
-                                timestamp = getCurrentTimestamp(),
+                        val newLogEntryState = state.logEntryState.copy(
+                            logEntries = state.logEntryState.logEntries + LogEntry(
+                                timestamp = event.timestamp.toLocalTimeString(),
                                 entrySource = EntrySource.AGENT,
-                                message = "Scenario started: ${scenario.name}"
+                                message = "Agent execution started."
                             )
-                            scenario.copy(messages = messages)
-                        }
+                        )
                         state.copy(
                             executionState = ExecutionState.Executing,
-                            selectedAutomationScenario = selectedScenario
+                            logEntryState = newLogEntryState
                         )
                     }
                 }
 
-                AgentEvent.Completed -> {
+                is AgentEvent.Completed -> {
                     _automationRunnerUiState.update { state ->
-                        val selectedScenario = state.selectedAutomationScenario?.let { scenario ->
-                            val messages = scenario.messages + LogEntry(
-                                timestamp = getCurrentTimestamp(),
+                        val newLogEntryState = state.logEntryState.copy(
+                            logEntries = state.logEntryState.logEntries + LogEntry(
+                                timestamp = event.timestamp.toLocalTimeString(),
                                 entrySource = EntrySource.AGENT,
-                                message = "Scenario completed: ${scenario.name}"
+                                message = "Agent execution completed."
                             )
-                            scenario.copy(messages = messages)
-                        }
+                        )
                         state.copy(
                             executionState = ExecutionState.Idle,
-                            selectedAutomationScenario = selectedScenario
+                            logEntryState = newLogEntryState
                         )
                     }
                 }
 
                 is AgentEvent.Failure -> {
                     _automationRunnerUiState.update { state ->
-                        val selectedScenario = state.selectedAutomationScenario?.let { scenario ->
-                            val messages = scenario.messages + LogEntry(
-                                timestamp = getCurrentTimestamp(),
+                        val newLogEntryState = state.logEntryState.copy(
+                            logEntries = state.logEntryState.logEntries + LogEntry(
+                                timestamp = event.timestamp.toLocalTimeString(),
                                 entrySource = EntrySource.AGENT,
                                 message = "Error: ${event.reason}"
                             )
-                            scenario.copy(messages = messages)
-                        }
+                        )
                         state.copy(
                             executionState = ExecutionState.Error(event.throwable),
-                            selectedAutomationScenario = selectedScenario
+                            logEntryState = newLogEntryState
                         )
                     }
                 }
 
-                is AgentEvent.Prompt -> {
-//                    _automationRunnerUiState.update { state ->
-//                        val selectedScenario = state.selectedAutomationScenario?.let { scenario ->
-//                            val messages = scenario.messages + LogEntry(
-//                                timestamp = getCurrentTimestamp(),
-//                                entrySource = EntrySource.AGENT,
-//                                message = event.content
-//                            )
-//                            scenario.copy(messages = messages)
-//                        }
-//                        state.copy(
-//                            selectedAutomationScenario = selectedScenario
-//                        )
-//                    }
-                }
+                is AgentEvent.Prompt -> {}
 
                 is AgentEvent.Response.Assistant -> {
                     _automationRunnerUiState.update { state ->
-                        val selectedScenario = state.selectedAutomationScenario?.let { scenario ->
-                            val messages = scenario.messages + LogEntry(
-                                timestamp = getCurrentTimestamp(),
+                        val newLogEntryState = state.logEntryState.copy(
+                            logEntries = state.logEntryState.logEntries + LogEntry(
+                                timestamp = event.timestamp.toLocalTimeString(),
                                 entrySource = EntrySource.AGENT,
                                 message = event.content
                             )
-                            scenario.copy(messages = messages)
-                        }
+                        )
                         state.copy(
-                            selectedAutomationScenario = selectedScenario
+                            logEntryState = newLogEntryState
                         )
                     }
                 }
 
                 is AgentEvent.Response.ToolCall -> {
                     _automationRunnerUiState.update { state ->
-                        val selectedScenario = state.selectedAutomationScenario?.let { scenario ->
-                            val messages = scenario.messages + LogEntry(
-                                timestamp = getCurrentTimestamp(),
-                                entrySource = EntrySource.AGENT,
+                        val newLogEntryState = state.logEntryState.copy(
+                            logEntries = state.logEntryState.logEntries + LogEntry(
+                                timestamp = event.timestamp.toLocalTimeString(),
+                                entrySource = EntrySource.TOOL,
                                 message = "Tool called: ${event.toolName} with content: ${event.content}"
                             )
-                            scenario.copy(messages = messages)
-                        }
+                        )
                         state.copy(
-                            selectedAutomationScenario = selectedScenario
+                            logEntryState = newLogEntryState
                         )
                     }
                 }
 
                 is AgentEvent.Response.ToolResult -> {
                     _automationRunnerUiState.update { state ->
-                        val selectedScenario = state.selectedAutomationScenario?.let { scenario ->
-                            val messages = scenario.messages + LogEntry(
-                                timestamp = getCurrentTimestamp(),
+                        val newLogEntryState = state.logEntryState.copy(
+                            logEntries = state.logEntryState.logEntries + LogEntry(
+                                timestamp = event.timestamp.toLocalTimeString(),
                                 entrySource = EntrySource.DEVICE,
                                 message = "Tool result: ${event.toolName} with content: ${event.content}"
                             )
-                            scenario.copy(messages = messages)
-                        }
+                        )
                         state.copy(
-                            selectedAutomationScenario = selectedScenario
+                            logEntryState = newLogEntryState
                         )
                     }
                 }
@@ -204,19 +186,7 @@ class AutomationRunnerViewModel(
     fun onAction(action: AutomationRunnerAction) {
         when (action) {
             AutomationRunnerAction.AddScenarioClicked -> {
-                val newScenario = AutomationScenario(
-                    name = "New Scenario",
-                    description = "Describe your scenario here.",
-                    prompt = "Describe your scenario here.",
-                    isActive = true
-                )
-                _automationRunnerUiState.update { state ->
-                    val automationScenarios = state.automationScenarios.map { it.copy(isActive = false) }
-                    state.copy(
-                        automationScenarios = listOf(newScenario) + automationScenarios,
-                        selectedAutomationScenario = newScenario
-                    )
-                }
+                handleAddScenario()
             }
 
             is AutomationRunnerAction.AppSelected -> {
@@ -232,32 +202,66 @@ class AutomationRunnerViewModel(
             }
 
             is AutomationRunnerAction.RunScenarioClicked -> {
+                clearLogs()
                 runScenario(action.automationScenario.prompt)
             }
 
             AutomationRunnerAction.StopScenarioClicked -> TODO()
             is AutomationRunnerAction.UpdatePrompt -> {
-                _automationRunnerUiState.update { state ->
-                    val updatedScenario = state.selectedAutomationScenario?.copy(prompt = action.prompt)
-                    val updatedScenarios = state.automationScenarios.map {
-                        if (it.name == updatedScenario?.name) {
-                            updatedScenario
-                        } else {
-                            it
-                        }
-                    }
+                updatePrompt(action)
+            }
 
-                    state.copy(
-                        automationScenarios = updatedScenarios,
-                        selectedAutomationScenario = updatedScenario
-                    )
-                }
+            AutomationRunnerAction.ClearLogs -> {
+                clearLogs()
             }
         }
     }
 
+    private fun updatePrompt(action: AutomationRunnerAction.UpdatePrompt) {
+        _automationRunnerUiState.update { state ->
+            val updatedScenario = state.selectedAutomationScenario?.copy(prompt = action.prompt)
+            val updatedScenarios = state.automationScenarios.map {
+                if (it.name == updatedScenario?.name) {
+                    updatedScenario
+                } else {
+                    it
+                }
+            }
+
+            state.copy(
+                automationScenarios = updatedScenarios,
+                selectedAutomationScenario = updatedScenario
+            )
+        }
+    }
+
+    private fun handleAddScenario() {
+        val newScenario = AutomationScenario(
+            name = "New Scenario",
+            description = "Describe your scenario here.",
+            prompt = "Describe your scenario here.",
+            isActive = true
+        )
+        _automationRunnerUiState.update { state ->
+            val automationScenarios = state.automationScenarios.map { it.copy(isActive = false) }
+            state.copy(
+                automationScenarios = listOf(newScenario) + automationScenarios,
+                selectedAutomationScenario = newScenario
+            )
+        }
+    }
+
+    private fun clearLogs() {
+        _automationRunnerUiState.update { state ->
+            state.copy(
+                logEntryState = state.logEntryState.copy(
+                    logEntries = emptyList()
+                )
+            )
+        }
+    }
+
     private fun runScenario(prompt: String) {
-        Logger.info("Running scenario CACACACA")
         val currentState = _automationRunnerUiState.value
         val deviceData = currentState.selectedDevice ?: return
         val installedApp = currentState.selectedApp ?: return
@@ -321,10 +325,12 @@ class AutomationRunnerViewModel(
         }
     }
 
-    private fun getCurrentTimestamp(): String {
-        val currentTimeMillis = System.currentTimeMillis()
-        val date = Date(currentTimeMillis)
-        val formatter = java.text.SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        return formatter.format(date)
+    fun Instant.toLocalTimeString(timeZone: TimeZone = TimeZone.currentSystemDefault()): String {
+        val time = toLocalDateTime(timeZone).time
+        return "%02d:%02d:%02d".format(
+            time.hour,
+            time.minute,
+            time.second
+        )
     }
 }

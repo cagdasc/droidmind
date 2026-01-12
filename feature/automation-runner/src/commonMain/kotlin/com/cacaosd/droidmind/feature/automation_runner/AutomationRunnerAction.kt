@@ -8,4 +8,5 @@ sealed interface AutomationRunnerAction {
     data class UpdatePrompt(val prompt: String) : AutomationRunnerAction
     data class RunScenarioClicked(val automationScenario: AutomationScenario) : AutomationRunnerAction
     data object StopScenarioClicked : AutomationRunnerAction
+    data object ClearLogs : AutomationRunnerAction
 }

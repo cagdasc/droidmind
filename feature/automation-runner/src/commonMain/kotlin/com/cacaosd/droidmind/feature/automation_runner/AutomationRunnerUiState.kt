@@ -6,7 +6,7 @@ data class AutomationRunnerUiState(
     val selectedDevice: DeviceData? = null,
     val selectedApp: InstalledApp? = null,
     val chipItems: Set<ChipItem> = emptySet(),
-    val logEntrySources: Set<EntrySource> = setOf(EntrySource.DEVICE, EntrySource.AGENT),
+    val logEntryState: LogEntryState = LogEntryState(),
     val executionState: ExecutionState = ExecutionState.Idle,
     val automationScenarios: List<AutomationScenario> = emptyList(),
     val selectedAutomationScenario: AutomationScenario? = null,
@@ -17,10 +17,14 @@ data class AutomationScenario(
     val description: String,
     val prompt: String,
     val isActive: Boolean = false,
-    val messages: List<LogEntry> = emptyList(),
     val inputTokensCount: String = "0",
     val outputTokensCount: String = "0",
     val totalTokensCount: String = "0",
+)
+
+data class LogEntryState(
+    val entrySources: List<EntrySource> = listOf(EntrySource.AGENT, EntrySource.TOOL, EntrySource.DEVICE),
+    val logEntries: List<LogEntry> = emptyList(),
 )
 
 data class LogEntry(
@@ -31,6 +35,7 @@ data class LogEntry(
 
 enum class EntrySource {
     DEVICE,
+    TOOL,
     AGENT,
 }
 

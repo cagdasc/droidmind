@@ -25,9 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cacaosd.droidmind.feature.automation_runner.composable.ChipFlowRow
-import com.cacaosd.droidmind.feature.automation_runner.composable.GenericDropdown
-import com.cacaosd.droidmind.feature.automation_runner.composable.colorSchemeProvider
+import com.cacaosd.droidmind.feature.automation_runner.composable.*
 import com.cacaosd.uikit.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -49,7 +47,6 @@ private fun InternalAutomationRunnerScreen(
         // Sidebar
         SidebarPanel(
             automationScenarios = automationRunnerUiState.automationScenarios,
-            selectedAutomationScenario = automationRunnerUiState.selectedAutomationScenario,
             onAction = onAction
         )
 
@@ -69,7 +66,11 @@ private fun InternalAutomationRunnerScreen(
                 DevicePreviewPanel(modifier = Modifier.width(300.dp))
             }
 
-            ConsolePanel(automationRunnerUiState, modifier = Modifier.height(280.dp))
+            ConsolePanel(
+                modifier = Modifier.height(280.dp),
+                logEntryState = automationRunnerUiState.logEntryState,
+                onAction = onAction
+            )
         }
     }
 }
@@ -77,7 +78,6 @@ private fun InternalAutomationRunnerScreen(
 @Composable
 private fun SidebarPanel(
     automationScenarios: List<AutomationScenario>,
-    selectedAutomationScenario: AutomationScenario?,
     onAction: (AutomationRunnerAction) -> Unit
 ) {
     Surface(
@@ -114,29 +114,6 @@ private fun SidebarPanel(
                 items(automationScenarios) { scenario ->
                     ScenarioCard(scenario)
                 }
-            }
-
-            Spacer(modifier = Modifier.height(AppTheme.sizes.large))
-
-            // Run button
-            Button(
-                onClick = {
-                    selectedAutomationScenario?.let {
-                        onAction(AutomationRunnerAction.RunScenarioClicked(it))
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(AppTheme.sizes.x4large),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                ),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Spacer(modifier = Modifier.width(AppTheme.sizes.medium))
-                Text("Run Scenario", fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -296,15 +273,47 @@ private fun ScenarioPanel(
                     modifier = Modifier.padding(bottom = AppTheme.sizes.small),
                     verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.small)
                 ) {
-                    Text(text = "Scenario", style = MaterialTheme.typography.labelLarge)
-                    if (automationRunnerUiState.chipItems.isNotEmpty()) {
-                        ChipFlowRow(
-                            items = automationRunnerUiState.chipItems.toList(),
-                            onItemToggle = { item ->
-                                onAction(AutomationRunnerAction.RemoveChip(item))
-                            },
-                            chipText = { it.label },
-                        )
+                    Text(text = "Scenario", style = MaterialTheme.typography.titleLarge)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                            if (automationRunnerUiState.chipItems.isNotEmpty()) {
+                                ChipFlowRow(
+                                    items = automationRunnerUiState.chipItems.toList(),
+                                    onItemToggle = { item ->
+                                        onAction(AutomationRunnerAction.RemoveChip(item))
+                                    },
+                                    chipText = { it.label },
+                                )
+                            }
+                        }
+                    }
+
+                }
+            },
+            trailingIcon = {
+                Box(
+                    modifier = Modifier.padding(bottom = AppTheme.sizes.small, end = AppTheme.sizes.medium)
+                        .fillMaxHeight()
+                ) {
+                    Button(
+                        onClick = {
+                            val selectedAutomationScenario = automationRunnerUiState.selectedAutomationScenario
+                            selectedAutomationScenario?.let {
+                                onAction(AutomationRunnerAction.RunScenarioClicked(it))
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.BottomEnd),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary,
+                            disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .5f),
+                            disabledContentColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = .5f)
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                        enabled = automationRunnerUiState.selectedAutomationScenario != null
+                                && automationRunnerUiState.executionState !is ExecutionState.Executing
+                    ) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = null)
                     }
                 }
             },
@@ -320,8 +329,10 @@ private fun ScenarioPanel(
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 focusedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                disabledIndicatorColor = Color.Transparent,
             ),
-            enabled = automationRunnerUiState.executionState !is ExecutionState.Executing
+            enabled = automationRunnerUiState.selectedAutomationScenario != null
+                    && automationRunnerUiState.executionState !is ExecutionState.Executing
         )
     }
 }
@@ -472,7 +483,11 @@ private fun DeviceFrame() {
 }
 
 @Composable
-private fun ConsolePanel(automationRunnerUiState: AutomationRunnerUiState, modifier: Modifier = Modifier) {
+private fun ConsolePanel(
+    modifier: Modifier = Modifier,
+    logEntryState: LogEntryState,
+    onAction: (AutomationRunnerAction) -> Unit
+) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -493,29 +508,17 @@ private fun ConsolePanel(automationRunnerUiState: AutomationRunnerUiState, modif
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.large)) {
-                        automationRunnerUiState.logEntrySources.forEach {
-                            when (it) {
-                                EntrySource.DEVICE -> ConsoleTab(
-                                    label = "Device",
-                                    dotColor = Color(0xFF60A5FA)
-                                )
-
-                                EntrySource.AGENT -> ConsoleTab(
-                                    label = "Agent",
-                                    dotColor = Color(0xFF4ADE80)
-                                )
-                            }
+                        logEntryState.entrySources.forEachIndexed { index, entrySource ->
+                            ConsoleTab(
+                                label = entrySource.name,
+                                dotColor = colorForIndex(index = index)
+                            )
                         }
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                    IconButton(onClick = { onAction(AutomationRunnerAction.ClearLogs) }) {
                         Icon(
                             Icons.Default.Delete,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier.size(AppTheme.sizes.large)
-                        )
-                        Icon(
-                            Icons.Default.KeyboardArrowDown,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.secondaryContainer,
                             modifier = Modifier.size(AppTheme.sizes.large)
@@ -524,11 +527,10 @@ private fun ConsolePanel(automationRunnerUiState: AutomationRunnerUiState, modif
                 }
             }
 
-            val entries = automationRunnerUiState.selectedAutomationScenario?.messages ?: emptyList()
             val listState = rememberLazyListState()
-            LaunchedEffect(entries.size) {
-                if (entries.isNotEmpty()) {
-                    listState.animateScrollToItem(entries.lastIndex)
+            LaunchedEffect(logEntryState.logEntries.size) {
+                if (logEntryState.logEntries.isNotEmpty()) {
+                    listState.animateScrollToItem(logEntryState.logEntries.lastIndex)
                 }
             }
 
@@ -540,8 +542,8 @@ private fun ConsolePanel(automationRunnerUiState: AutomationRunnerUiState, modif
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.small)
             ) {
-                items(entries) { entry ->
-                    LogEntryRow(entry)
+                items(logEntryState.logEntries) { entry ->
+                    LogEntryRow(logEntryState.entrySources, entry)
                 }
             }
         }
@@ -551,9 +553,8 @@ private fun ConsolePanel(automationRunnerUiState: AutomationRunnerUiState, modif
 @Composable
 private fun ConsoleTab(label: String, dotColor: Color) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.small),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable { }
     ) {
         Box(
             modifier = Modifier
@@ -570,7 +571,7 @@ private fun ConsoleTab(label: String, dotColor: Color) {
 }
 
 @Composable
-private fun LogEntryRow(entry: LogEntry) {
+private fun LogEntryRow(entrySources: List<EntrySource>, entry: LogEntry) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -582,28 +583,17 @@ private fun LogEntryRow(entry: LogEntry) {
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF6B7280)
         )
-        when (entry.entrySource) {
-            EntrySource.DEVICE -> {
-                Text(
-                    text = "[Device]",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF60A5FA)
-                )
-            }
-
-            EntrySource.AGENT -> {
-                Text(
-                    text = "[Agent]",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF4ADE80)
-                )
-            }
-        }
-
         Text(
+            text = "[${entry.entrySource.name}]",
+            style = MaterialTheme.typography.bodyMedium,
+            color = colorForIndex(entrySources.indexOf(entry.entrySource))
+        )
+
+        CollapsibleLogText(
             text = entry.message,
             style = MaterialTheme.typography.bodyMedium,
-            color = Color(0xFF9CA3AF)
+            color = Color(0xFF9CA3AF),
+            collapsedLines = 2
         )
     }
 }
@@ -622,14 +612,8 @@ private fun AutomationRunnerScreenPreview() {
             inputTokensCount = "150",
             outputTokensCount = "75",
             totalTokensCount = "225",
-            messages = listOf(
-                LogEntry("00:10:16.102", EntrySource.AGENT, "Parsing scenario \"User Login Flow\"..."),
-                LogEntry("00:10:16.450", EntrySource.AGENT, "Action: Tap(x=540, y=1860) executed."),
-                LogEntry(
-                    "00:10:17.200", EntrySource.DEVICE, "Input text "
-                )
+
             ),
-        ),
         AutomationScenario(
             name = "Data Extraction",
             description = "Extracts user data from the profile section of the app.",
@@ -638,17 +622,22 @@ private fun AutomationRunnerScreenPreview() {
             inputTokensCount = "120",
             outputTokensCount = "60",
             totalTokensCount = "180",
-            messages = listOf(
-                LogEntry("00:12:05.300", EntrySource.AGENT, "Starting data extraction..."),
-                LogEntry("00:12:06.150", EntrySource.DEVICE, "Navigated to profile section."),
-                LogEntry("00:12:07.400", EntrySource.AGENT, "Data extraction completed successfully.")
-            ),
         )
     )
 
     val automationRunnerUiState = AutomationRunnerUiState(
         automationScenarios = automationScenarios,
         selectedAutomationScenario = automationScenarios.first(),
+        logEntryState = LogEntryState(
+            entrySources = listOf(EntrySource.DEVICE, EntrySource.AGENT),
+            logEntries = listOf(
+                LogEntry("00:10:16.102", EntrySource.AGENT, "Parsing scenario \"User Login Flow\"..."),
+                LogEntry("00:10:16.450", EntrySource.AGENT, "Action: Tap(x=540, y=1860) executed."),
+                LogEntry(
+                    "00:10:17.200", EntrySource.DEVICE, "Input text "
+                )
+            ),
+        ),
         deviceDataList = listOf(
             DeviceData(
                 name = "Pixel 5",
