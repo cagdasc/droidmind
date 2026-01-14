@@ -14,7 +14,9 @@ class PollUseCase {
         return flow {
             val tickerChannel = ticker(delayMillis = interval, initialDelayMillis = 0L)
             val tickerFlow = tickerChannel.receiveAsFlow()
-            tickerFlow.collect {
+            tickerFlow
+                .catch { error -> Logger.error("Error while polling", error) }
+                .collect {
                 val value = emit()
                 emit(value)
             }

@@ -27,12 +27,12 @@ koin-version = "4.0.2"
 ktor-version = "3.0.3"
 
 # Logging & runtime
-logback-version = "1.5.19"
-kotlin-logging-version = "7.0.13"
+logback-version = "1.5.24"
+kotlin-logging-version = "7.0.14"
 
 # Misc / Libraries
-koog-version = "0.5.1"
-xmlutil-version = "0.91.1"
+koog-version = "0.6.0"
+xmlutil-version = "0.91.3"
 
 # Multiplatform
 foundation-coroutines = "0.1.0"

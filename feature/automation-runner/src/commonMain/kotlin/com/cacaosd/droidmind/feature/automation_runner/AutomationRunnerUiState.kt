@@ -61,5 +61,5 @@ sealed class ExecutionState {
     data object Idle : ExecutionState()
     data object Executing : ExecutionState()
     data class Success(val message: String? = null) : ExecutionState()
-    data class Error(val error: Throwable) : ExecutionState()
+    data class Error(val error: Throwable?) : ExecutionState()
 }

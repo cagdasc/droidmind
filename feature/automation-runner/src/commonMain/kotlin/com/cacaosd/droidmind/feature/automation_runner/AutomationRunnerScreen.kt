@@ -593,7 +593,6 @@ private fun LogEntryRow(entrySources: List<EntrySource>, entry: LogEntry) {
             text = entry.message,
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF9CA3AF),
-            collapsedLines = 2
         )
     }
 }

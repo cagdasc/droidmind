@@ -76,4 +76,8 @@ val agentToolsModule = module {
         }
     }
     single { toolExecutionStrategy("Adb tool execution strategy") }
+//    single { reActStrategy(
+//        reasoningInterval = 1,
+//        name = "ui_test_agent_strategy"
+//    ) }
 }

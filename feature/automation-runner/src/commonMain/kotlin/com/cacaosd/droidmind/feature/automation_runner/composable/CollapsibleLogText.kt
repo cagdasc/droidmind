@@ -13,6 +13,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -20,16 +21,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.cacaosd.uikit.theme.AppTheme
 
 @Composable
-fun CollapsibleLogText(
+internal fun CollapsibleLogText(
     text: String,
     style: TextStyle = LocalTextStyle.current,
     color: Color = Color.Unspecified,
     modifier: Modifier = Modifier,
-    collapsedLines: Int = 3,
+    collapsedCharLimit: Int = 200,
     initiallyExpanded: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(initiallyExpanded) }
     var showIcon by remember { mutableStateOf(false) }
+
+    LaunchedEffect(text) {
+        showIcon = text.length > collapsedCharLimit
+    }
 
     Row(
         modifier = modifier
@@ -41,12 +46,8 @@ fun CollapsibleLogText(
             modifier = Modifier.weight(1f),
             style = style,
             color = color,
-            maxLines = if (expanded) Int.MAX_VALUE else collapsedLines,
-            overflow = TextOverflow.Ellipsis,
-            onTextLayout = { result ->
-                // Show icon only if text exceeds collapsedLines
-                showIcon = result.lineCount > collapsedLines
-            }
+            maxLines = if (expanded) Int.MAX_VALUE else 1,
+            overflow = TextOverflow.Ellipsis
         )
 
         if (showIcon) {
@@ -55,6 +56,7 @@ fun CollapsibleLogText(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
+                    .align(Alignment.Bottom)
                     .padding(start = AppTheme.sizes.xmedium)
                     .clickable { expanded = !expanded }
             )

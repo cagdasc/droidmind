@@ -131,6 +131,8 @@ class DefaultAgentClientFactory(
                             content = message.content,
                             timestamp = message.metaInfo.timestamp
                         )
+
+                        else -> null
                     }
 
                     val metadataMessage = AgentEvent.Token(
@@ -141,7 +143,7 @@ class DefaultAgentClientFactory(
                     )
 
                     agentEventFlow.emit(metadataMessage)
-                    agentEventFlow.emit(mcpMessage)
+                    mcpMessage?.let { agentEventFlow.emit(it) }
                 }
             }
 
@@ -164,11 +166,12 @@ class DefaultAgentClientFactory(
             }
 
             onToolCallFailed { context ->
-                val toolName = context.tool.name
-                val throwable = context.throwable
+                val toolName = context.toolName
+                val throwable =
+                    context.error?.let { Throwable(message = it.message, cause = Throwable(message = it.cause)) }
                 agentEventFlow.emit(
                     AgentEvent.Failure(
-                        reason = toolName,
+                        reason = context.message,
                         throwable = throwable,
                         timestamp = clock.instant().toKotlinInstant()
                     )
@@ -176,12 +179,15 @@ class DefaultAgentClientFactory(
             }
 
             onToolValidationFailed { context ->
-                val toolName = context.tool.name
-                val error = context.error
+                val toolName = context.toolName
+                val throwable =
+                    context.error.let {
+                        Throwable(message = it.message, cause = Throwable(message = it.cause))
+                    }
                 agentEventFlow.emit(
                     AgentEvent.Failure(
-                        reason = toolName,
-                        throwable = Throwable(error),
+                        reason = context.message,
+                        throwable = throwable,
                         timestamp = clock.instant().toKotlinInstant()
                     )
                 )
@@ -190,15 +196,15 @@ class DefaultAgentClientFactory(
             onToolCallCompleted { context ->
                 agentMessageFlow.emit(
                     McpMessage.Response.ToolResult(
-                        toolName = context.tool.name,
-                        content = context.result
+                        toolName = context.toolName,
+                        content = context.toolResult?.toString()
                     )
                 )
 
                 agentEventFlow.emit(
                     AgentEvent.Response.ToolResult(
-                        toolName = context.tool.name,
-                        content = context.result,
+                        toolName = context.toolName,
+                        content = context.toolResult?.toString(),
                         timestamp = clock.instant().toKotlinInstant()
                     )
                 )

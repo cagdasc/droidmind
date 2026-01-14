@@ -20,7 +20,7 @@ sealed interface AgentEvent {
             Response(timestamp)
     }
 
-    data class Failure(val reason: String, val throwable: Throwable, override val timestamp: Instant) : AgentEvent
+    data class Failure(val reason: String, val throwable: Throwable?, override val timestamp: Instant) : AgentEvent
     data class Token(
         val inputTokensCount: Int,
         val outputTokensCount: Int,
