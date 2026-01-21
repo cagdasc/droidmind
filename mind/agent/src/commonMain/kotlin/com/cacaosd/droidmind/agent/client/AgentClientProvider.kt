@@ -8,7 +8,7 @@ import com.cacaosd.droidmind.agent.client.llm.CustomGoogleLLMClient
 
 fun provideGoogleAgentBuilder(apiKey: String): AgentClientBuilder {
     return AgentClientBuilder.create(
-        llmModel = GoogleModels.Gemini2_5Flash,
+        llmModel = GoogleModels.Gemini2_5FlashLite,
         executor = SingleLLMPromptExecutor(CustomGoogleLLMClient(apiKey))
     )
 }

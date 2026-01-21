@@ -3,6 +3,7 @@ package com.cacaosd.droidmind.feature.automation_runner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cacaosd.droidmind.domain.AgentEvent
+import com.cacaosd.droidmind.domain.session.ExecutionMode
 import com.cacaosd.droidmind.domain.session.ScenarioExecutionRequest
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
 import com.cacaosd.droidmind.feature.automation_runner.usecase.DevicePollUseCase
@@ -214,7 +215,13 @@ class AutomationRunnerViewModel(
             AutomationRunnerAction.ClearLogs -> {
                 clearLogs()
             }
+
+            is AutomationRunnerAction.PromptModeChanged -> handlePromptModeChange(action)
         }
+    }
+
+    private fun handlePromptModeChange(action: AutomationRunnerAction.PromptModeChanged) {
+        _automationRunnerUiState.update { it.copy(promptMode = action.promptMode) }
     }
 
     private fun updatePrompt(action: AutomationRunnerAction.UpdatePrompt) {
@@ -266,13 +273,25 @@ class AutomationRunnerViewModel(
         val deviceData = currentState.selectedDevice ?: return
         val installedApp = currentState.selectedApp ?: return
 
+        val modifiedPrompt = """
+            SCENARIO "YouTube Search and Play First Video"
+            APP "${installedApp.packageName}"
+            $prompt
+        """.trimIndent()
+
         viewModelScope.launch(platformDispatchers.default) {
-            val scenarioExecutionRequest = ScenarioExecutionRequest.builder()
-                .deviceSerial(deviceData.serial)
-                .packageName(installedApp.packageName)
-                .scenario(prompt)
-                .expectation("Once you done with the scenario, explain what you have done.")
+            val scenarioExecutionRequest = ScenarioExecutionRequest.builder(
+                deviceData.serial,
+                installedApp.packageName,
+                modifiedPrompt,
+                when (currentState.promptMode) {
+                    PromptMode.PLAIN_TEXT -> ExecutionMode.TEXT
+                    PromptMode.MIND_SCRIPT -> ExecutionMode.SCRIPT
+                }
+            )
+//                .expectation("Once you done with the scenario, explain what you have done.")
                 .build()
+
             scenarioExecutor.execute(
                 request = scenarioExecutionRequest,
             )

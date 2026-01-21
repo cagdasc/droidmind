@@ -49,7 +49,7 @@ val agentModule = module {
     }
     single(CustomAgentQualifier) {
         val agentClientFactory = get<AgentClientFactory>()
-        agentClientFactory.createCustomModel("qwen3:14b")
+        agentClientFactory.createCustomModel("granite4:latest")
     }
 
     single {

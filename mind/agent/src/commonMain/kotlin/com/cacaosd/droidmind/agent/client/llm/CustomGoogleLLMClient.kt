@@ -12,7 +12,7 @@ class CustomGoogleLLMClient(apiKey: String) : GoogleLLMClient(apiKey) {
     override suspend fun execute(prompt: Prompt, model: LLModel, tools: List<ToolDescriptor>): List<Message.Response> {
         // You can add custom behavior here, such as logging or modifying the prompt.
         val response = super.execute(prompt, model, tools)
-        delay(7_000)
+        delay(12_000)
         return response
     }
 

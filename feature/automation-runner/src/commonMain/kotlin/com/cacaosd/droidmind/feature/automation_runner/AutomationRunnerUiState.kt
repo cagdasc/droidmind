@@ -10,6 +10,7 @@ data class AutomationRunnerUiState(
     val executionState: ExecutionState = ExecutionState.Idle,
     val automationScenarios: List<AutomationScenario> = emptyList(),
     val selectedAutomationScenario: AutomationScenario? = null,
+    val promptMode: PromptMode = PromptMode.PLAIN_TEXT
 )
 
 data class AutomationScenario(
@@ -62,4 +63,9 @@ sealed class ExecutionState {
     data object Executing : ExecutionState()
     data class Success(val message: String? = null) : ExecutionState()
     data class Error(val error: Throwable?) : ExecutionState()
+}
+
+enum class PromptMode {
+    PLAIN_TEXT,
+    MIND_SCRIPT
 }

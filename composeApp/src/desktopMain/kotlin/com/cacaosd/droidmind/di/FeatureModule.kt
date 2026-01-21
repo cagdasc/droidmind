@@ -1,11 +1,8 @@
 package com.cacaosd.droidmind.di
 
 import com.cacaosd.droidmind.agent.di.AgentEventFlowQualifier
-import com.cacaosd.droidmind.agent.di.AgentMessageFlowQualifier
 import com.cacaosd.droidmind.domain.AgentEvent
-import com.cacaosd.droidmind.domain.McpMessage
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
-import com.cacaosd.droidmind.feature.ChatViewModel
 import com.cacaosd.droidmind.feature.automation_runner.AutomationRunnerViewModel
 import com.cacaosd.droidmind.feature.automation_runner.usecase.DevicePollUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.InstalledAppsPollUseCase
@@ -29,19 +26,6 @@ val featureModule = module {
             pollUseCase = get(),
             deviceController = get(AndroidDeviceControllerQualifier),
             platformDispatchers = get()
-        )
-    }
-
-    viewModel {
-        val scenarioExecutor: ScenarioExecutor = get()
-
-        val mcpMessageFlow: MutableSharedFlow<McpMessage> =
-            get<MutableSharedFlow<McpMessage>>(AgentMessageFlowQualifier)
-
-        ChatViewModel(
-            scenarioExecutor = scenarioExecutor,
-            mcpMessageFlow = mcpMessageFlow,
-            deviceController = get(AndroidDeviceControllerQualifier)
         )
     }
 
