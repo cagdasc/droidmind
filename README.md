@@ -37,6 +37,30 @@ Example prompt:
     
     3. Find item which is "Me at the zoo" and click it. Then verify you seee "Me at zoo" title and publisher name is "jawed"
 
+Example _MindScript_
+
+```mindscript
+DO
+- tap Search input field
+
+EXPECT
+- VerifyText "Search YouTube"
+
+DO
+- input_text search_input "First video in YouTube"
+- send_key_event done
+
+EXPECT
+- VerifyText "me at the zoo"
+
+DO
+- tap me at the zoo
+
+EXPECT
+- VerifyText video_title "Me at the zoo"
+- VerifyText video_publisher "jawed"
+```
+
 See demo video (or go [demo](demo) directory):
 [![Video thumbnail](demo/demo_cover.png)](https://github.com/user-attachments/assets/85943f11-f6da-4352-9e14-4c15f83ecedc)
 

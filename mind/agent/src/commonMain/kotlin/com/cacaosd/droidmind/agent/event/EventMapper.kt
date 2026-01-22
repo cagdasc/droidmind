@@ -15,6 +15,7 @@ class EventMapper {
                 toolName = message.tool,
                 content = message.content
             )
+            else -> null
         }
 
         val metadataMessage = McpMessage.Response.Metadata.Token(
@@ -23,6 +24,6 @@ class EventMapper {
             totalTokensCount = message.metaInfo.totalTokensCount ?: 0
         )
 
-        return listOf(mcpMessage, metadataMessage)
+        return listOfNotNull(mcpMessage, metadataMessage)
     }
 }

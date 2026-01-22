@@ -2,11 +2,13 @@
 
 package com.cacaosd.droidmind.di
 
+import com.cacaosd.droidmind.agent.di.AgentEventFlowQualifier
 import com.cacaosd.droidmind.agent.di.AgentMessageFlowQualifier
 import com.cacaosd.droidmind.agent.di.agentModule
 import com.cacaosd.droidmind.agent.di.agentToolsModule
 import com.cacaosd.droidmind.agent.event.EventMapper
 import com.cacaosd.droidmind.core.config.di.coreConfigModule
+import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.McpMessage
 import com.cacaosd.droidmind.localProperties
 import com.cacaosd.droidmind.mind.device.di.deviceModule
@@ -30,6 +32,7 @@ val mainModule = module {
 
     single { EventMapper() }
     single<MutableSharedFlow<McpMessage>>(AgentMessageFlowQualifier) { MutableSharedFlow() }
+    single<MutableSharedFlow<AgentEvent>>(AgentEventFlowQualifier) { MutableSharedFlow() }
     single<Properties> { localProperties }
     single<Clock> { Clock.systemUTC() }
 }

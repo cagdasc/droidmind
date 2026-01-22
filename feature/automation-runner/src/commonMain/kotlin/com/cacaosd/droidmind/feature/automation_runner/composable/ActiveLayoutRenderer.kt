@@ -1,4 +1,4 @@
-package com.cacaosd.droidmind.feature.composable
+package com.cacaosd.droidmind.feature.automation_runner.composable
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background

@@ -9,8 +9,6 @@ kotlin {
     jvm("desktop")
 
     sourceSets {
-        val desktopMain by getting
-
         commonMain.dependencies {
             implementation(project(":core:logging"))
             implementation(project(":mind:device"))
@@ -18,6 +16,8 @@ kotlin {
             implementation(project(":mind:domain"))
 
             implementation(libs.ui.theme)
+
+            implementation(libs.platform.coroutines)
 
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -31,33 +31,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
 
-            implementation("com.neoutils.highlight:highlight-compose:2.2.0")
 
             implementation(libs.ai.koog)
-        }
-        desktopMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
-            implementation(compose.uiUtil)
-            implementation(libs.ktor.client.cio)
-
-            val platform = "linux"
-
-            val javafxVersion = "23.0.1"
-
-            implementation("org.openjfx:javafx-base:$javafxVersion:$platform")
-            implementation("org.openjfx:javafx-swing:$javafxVersion:$platform")
-            implementation("org.openjfx:javafx-graphics:$javafxVersion:$platform")
-            implementation("org.openjfx:javafx-controls:$javafxVersion:$platform")
-            implementation("org.openjfx:javafx-media:$javafxVersion:$platform")
-            implementation("org.openjfx:javafx-web:$javafxVersion:$platform")
-        }
-
-        commonTest.dependencies {
-            implementation(kotlin("test"))
-
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-            implementation(compose.uiTest)
         }
     }
 }

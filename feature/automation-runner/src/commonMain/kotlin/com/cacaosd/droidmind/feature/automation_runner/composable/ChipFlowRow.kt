@@ -1,8 +1,7 @@
 @file:OptIn(ExperimentalLayoutApi::class)
 
-package com.cacaosd.droidmind.feature.composable
+package com.cacaosd.droidmind.feature.automation_runner.composable
 
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -12,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cacaosd.uikit.theme.AppTheme
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun <T> ChipFlowRow(

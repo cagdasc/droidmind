@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.cacaosd.droidmind.feature.composable
+package com.cacaosd.droidmind.feature.automation_runner.composable
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.*

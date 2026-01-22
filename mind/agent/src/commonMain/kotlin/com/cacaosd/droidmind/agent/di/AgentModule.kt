@@ -24,13 +24,17 @@ internal object CustomAgentQualifier : SelfResolveQualifier()
 
 object AgentMessageFlowQualifier : SelfResolveQualifier()
 
+data object AgentEventFlowQualifier : SelfResolveQualifier()
+
 val agentModule = module {
     single {
         DefaultAgentClientFactory(
             toolRegistry = get(),
             aiAgentStrategy = get(),
             eventMapper = get(),
-            agentEventFlow = get(AgentMessageFlowQualifier)
+            agentMessageFlow = get(AgentMessageFlowQualifier),
+            agentEventFlow = get(AgentEventFlowQualifier),
+            clock = get()
         )
     } bind AgentClientFactory::class
 
@@ -45,7 +49,7 @@ val agentModule = module {
     }
     single(CustomAgentQualifier) {
         val agentClientFactory = get<AgentClientFactory>()
-        agentClientFactory.createCustomModel("qwen3:14b")
+        agentClientFactory.createCustomModel("granite4:latest")
     }
 
     single {
@@ -72,4 +76,8 @@ val agentToolsModule = module {
         }
     }
     single { toolExecutionStrategy("Adb tool execution strategy") }
+//    single { reActStrategy(
+//        reasoningInterval = 1,
+//        name = "ui_test_agent_strategy"
+//    ) }
 }

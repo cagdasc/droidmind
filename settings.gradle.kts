@@ -37,7 +37,7 @@ plugins {
 include(":composeApp")
 include(":core:config")
 include(":core:logging")
-include(":feature:chat")
+include(":feature:automation-runner")
 include(":mind:agent")
 include(":mind:domain")
 include(":interaction-engine")
