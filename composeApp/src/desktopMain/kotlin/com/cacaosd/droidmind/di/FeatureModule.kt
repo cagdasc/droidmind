@@ -1,10 +1,14 @@
 package com.cacaosd.droidmind.di
 
 import com.cacaosd.droidmind.agent.di.AgentEventFlowQualifier
+import com.cacaosd.droidmind.agent.di.GoogleAgentQualifier
+import com.cacaosd.droidmind.agent.di.MetaAgentQualifier
+import com.cacaosd.droidmind.agent.di.OllamaAgentsQualifier
 import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
 import com.cacaosd.droidmind.feature.automation_runner.AutomationRunnerViewModel
 import com.cacaosd.droidmind.feature.automation_runner.usecase.DevicePollUseCase
+import com.cacaosd.droidmind.feature.automation_runner.usecase.GetAvailableLLMsUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.InstalledAppsPollUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.PollUseCase
 import com.cacaosd.droidmind.mind.device.di.AndroidDeviceControllerQualifier
@@ -29,6 +33,14 @@ val featureModule = module {
         )
     }
 
+    single {
+        GetAvailableLLMsUseCase(
+            googleAgentClient = get(GoogleAgentQualifier),
+            metaAgentClient = get(MetaAgentQualifier),
+            ollamaAgentClients = get(OllamaAgentsQualifier)
+        )
+    }
+
     viewModel {
         val scenarioExecutor: ScenarioExecutor = get()
 
@@ -37,8 +49,8 @@ val featureModule = module {
 
         AutomationRunnerViewModel(
             scenarioExecutor = scenarioExecutor,
+            getAvailableLLMsUseCase = get(),
             agentEventFlow = agentEventFlow,
-            deviceController = get(AndroidDeviceControllerQualifier),
             devicePollUseCase = get(),
             installedAppsPollUseCase = get(),
             platformDispatchers = get()

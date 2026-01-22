@@ -8,6 +8,9 @@ class DefaultAgentClient(
     private val builder: AgentClientBuilder
 ) : AgentClient {
     private lateinit var agent: AIAgent<String, String>
+    override val modelProvider: String = builder.build().agentConfig.model.provider.display
+
+    override val modelName: String = builder.build().agentConfig.model.id
 
     override suspend fun executePrompt(prompt: String) {
         agent = builder.build()

@@ -6,9 +6,10 @@ import com.cacaosd.droidmind.mind.device.controller.DeviceController
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
-class DefaultScenarioExecutor(private val agentClient: AgentClient, private val deviceController: DeviceController) :
+class DefaultScenarioExecutor(private val deviceController: DeviceController) :
     ScenarioExecutor {
-    override suspend fun execute(deviceSerial: String?, packageName: String, prompt: String) {
+
+    override suspend fun execute(agentClient: AgentClient, deviceSerial: String?, packageName: String, prompt: String) {
         deviceController.enableAccessibilityService(serial = deviceSerial)
         delay(250.milliseconds)
         deviceController.sendData(

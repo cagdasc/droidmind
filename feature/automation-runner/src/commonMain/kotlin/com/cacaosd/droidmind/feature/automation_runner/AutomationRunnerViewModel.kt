@@ -2,13 +2,14 @@ package com.cacaosd.droidmind.feature.automation_runner
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.session.ExecutionMode
 import com.cacaosd.droidmind.domain.session.ScenarioExecutionRequest
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
 import com.cacaosd.droidmind.feature.automation_runner.usecase.DevicePollUseCase
+import com.cacaosd.droidmind.feature.automation_runner.usecase.GetAvailableLLMsUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.InstalledAppsPollUseCase
-import com.cacaosd.droidmind.mind.device.controller.DeviceController
 import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -21,8 +22,8 @@ import java.util.*
 
 class AutomationRunnerViewModel(
     private val scenarioExecutor: ScenarioExecutor,
+    private val getAvailableLLMsUseCase: GetAvailableLLMsUseCase,
     private val agentEventFlow: MutableSharedFlow<AgentEvent>,
-    private val deviceController: DeviceController,
     private val devicePollUseCase: DevicePollUseCase,
     private val installedAppsPollUseCase: InstalledAppsPollUseCase,
     private val platformDispatchers: PlatformDispatchers
@@ -31,10 +32,13 @@ class AutomationRunnerViewModel(
     val automationRunnerUiState: StateFlow<AutomationRunnerUiState> = _automationRunnerUiState
 
     private var installedAppsJob: Job? = null
+    private val availableAgentClients: List<AgentClient>
+        get() = getAvailableLLMsUseCase.invoke()
     private val numberFormat: NumberFormat = NumberFormat.getNumberInstance(Locale.UK)
 
     init {
         pollDevices()
+        loadAvailableLLMs()
         collectAgentEvents()
     }
 
@@ -55,14 +59,25 @@ class AutomationRunnerViewModel(
         }.launchIn(viewModelScope)
     }
 
+    private fun loadAvailableLLMs() {
+        val availableLLMs = availableAgentClients.map {
+            LLMData(
+                providerName = it.modelProvider,
+                modelName = it.modelName
+            )
+        }
+        _automationRunnerUiState.update { state ->
+            state.copy(availableLLMs = availableLLMs)
+        }
+    }
+
     private fun pollForInstalledApp(deviceSerial: String) {
         installedAppsJob?.cancel()
-        installedAppsJob = installedAppsPollUseCase.pollInstalledApps(deviceSerial)
-            .onEach { listOfApps ->
-                _automationRunnerUiState.update { state ->
-                    state.copy(installedApps = listOfApps.sorted().map { InstalledApp(packageName = it) })
-                }
-            }.launchIn(viewModelScope)
+        installedAppsJob = installedAppsPollUseCase.pollInstalledApps(deviceSerial).onEach { listOfApps ->
+            _automationRunnerUiState.update { state ->
+                state.copy(installedApps = listOfApps.sorted().map { InstalledApp(packageName = it) })
+            }
+        }.launchIn(viewModelScope)
     }
 
     private fun collectAgentEvents() {
@@ -78,8 +93,7 @@ class AutomationRunnerViewModel(
                             )
                         )
                         state.copy(
-                            executionState = ExecutionState.Executing,
-                            logEntryState = newLogEntryState
+                            executionState = ExecutionState.Executing, logEntryState = newLogEntryState
                         )
                     }
                 }
@@ -94,8 +108,7 @@ class AutomationRunnerViewModel(
                             )
                         )
                         state.copy(
-                            executionState = ExecutionState.Idle,
-                            logEntryState = newLogEntryState
+                            executionState = ExecutionState.Idle, logEntryState = newLogEntryState
                         )
                     }
                 }
@@ -110,8 +123,7 @@ class AutomationRunnerViewModel(
                             )
                         )
                         state.copy(
-                            executionState = ExecutionState.Error(event.throwable),
-                            logEntryState = newLogEntryState
+                            executionState = ExecutionState.Error(event.throwable), logEntryState = newLogEntryState
                         )
                     }
                 }
@@ -217,6 +229,13 @@ class AutomationRunnerViewModel(
             }
 
             is AutomationRunnerAction.PromptModeChanged -> handlePromptModeChange(action)
+            is AutomationRunnerAction.LLMSelected -> handleLLMSelection(action)
+        }
+    }
+
+    private fun handleLLMSelection(action: AutomationRunnerAction.LLMSelected) {
+        _automationRunnerUiState.update { state ->
+            state.copy(selectedLLM = action.llmData)
         }
     }
 
@@ -236,8 +255,7 @@ class AutomationRunnerViewModel(
             }
 
             state.copy(
-                automationScenarios = updatedScenarios,
-                selectedAutomationScenario = updatedScenario
+                automationScenarios = updatedScenarios, selectedAutomationScenario = updatedScenario
             )
         }
     }
@@ -272,6 +290,9 @@ class AutomationRunnerViewModel(
         val currentState = _automationRunnerUiState.value
         val deviceData = currentState.selectedDevice ?: return
         val installedApp = currentState.selectedApp ?: return
+        val selectedLLM = currentState.selectedLLM ?: return
+
+        val agentClient = availableAgentClients.find { it.modelName == selectedLLM.modelName } ?: return
 
         val modifiedPrompt = """
             SCENARIO "YouTube Search and Play First Video"
@@ -281,10 +302,7 @@ class AutomationRunnerViewModel(
 
         viewModelScope.launch(platformDispatchers.default) {
             val scenarioExecutionRequest = ScenarioExecutionRequest.builder(
-                deviceData.serial,
-                installedApp.packageName,
-                modifiedPrompt,
-                when (currentState.promptMode) {
+                deviceData.serial, installedApp.packageName, modifiedPrompt, when (currentState.promptMode) {
                     PromptMode.PLAIN_TEXT -> ExecutionMode.TEXT
                     PromptMode.MIND_SCRIPT -> ExecutionMode.SCRIPT
                 }
@@ -293,6 +311,7 @@ class AutomationRunnerViewModel(
                 .build()
 
             scenarioExecutor.execute(
+                agentClient = agentClient,
                 request = scenarioExecutionRequest,
             )
         }
@@ -302,8 +321,7 @@ class AutomationRunnerViewModel(
         pollForInstalledApp(action.deviceData.serial)
         _automationRunnerUiState.update { state ->
             state.copy(
-                selectedDevice = action.deviceData,
-                chipItems = setOf(ChipItem.Device(action.deviceData))
+                selectedDevice = action.deviceData, chipItems = setOf(ChipItem.Device(action.deviceData))
             )
         }
     }
@@ -313,8 +331,7 @@ class AutomationRunnerViewModel(
             val deviceData =
                 state.chipItems.find { it is ChipItem.Device } ?: error("DeviceData should always be present.")
             state.copy(
-                selectedApp = action.installedApp,
-                chipItems = setOf(deviceData, ChipItem.App(action.installedApp))
+                selectedApp = action.installedApp, chipItems = setOf(deviceData, ChipItem.App(action.installedApp))
             )
         }
     }
@@ -325,20 +342,15 @@ class AutomationRunnerViewModel(
                 is ChipItem.Device -> {
                     installedAppsJob?.cancel()
                     state.copy(
-                        selectedDevice = null,
-                        selectedApp = null,
-                        chipItems = emptySet(),
-                        installedApps = emptyList()
+                        selectedDevice = null, selectedApp = null, chipItems = emptySet(), installedApps = emptyList()
                     )
                 }
 
                 is ChipItem.App -> {
                     state.copy(
-                        selectedApp = null,
-                        chipItems = state.chipItems.toMutableSet().apply {
+                        selectedApp = null, chipItems = state.chipItems.toMutableSet().apply {
                             remove(action.chipItem)
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -347,9 +359,7 @@ class AutomationRunnerViewModel(
     fun Instant.toLocalTimeString(timeZone: TimeZone = TimeZone.currentSystemDefault()): String {
         val time = toLocalDateTime(timeZone).time
         return "%02d:%02d:%02d".format(
-            time.hour,
-            time.minute,
-            time.second
+            time.hour, time.minute, time.second
         )
     }
 }

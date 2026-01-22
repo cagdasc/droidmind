@@ -2,6 +2,8 @@ package com.cacaosd.droidmind.feature.automation_runner
 
 data class AutomationRunnerUiState(
     val deviceDataList: List<DeviceData> = emptyList(),
+    val availableLLMs: List<LLMData> = emptyList(),
+    val selectedLLM: LLMData? = null,
     val installedApps: List<InstalledApp> = emptyList(),
     val selectedDevice: DeviceData? = null,
     val selectedApp: InstalledApp? = null,
@@ -47,6 +49,11 @@ data class DeviceData(
     val screenWidth: Int,
     val screenHeight: Int,
     val osVersion: String = "",
+)
+
+data class LLMData(
+    val providerName: String,
+    val modelName: String,
 )
 
 data class InstalledApp(

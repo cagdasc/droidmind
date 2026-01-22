@@ -80,6 +80,25 @@ class DefaultAgentClientFactory(
         return DefaultAgentClient(builder)
     }
 
+    override fun createOllamaAgents(): List<AgentClient> {
+        val ollamaClient = OllamaClient()
+        val models = runBlocking { ollamaClient.getModels() }
+        return models.map { modelInfo ->
+            val llmModel = modelInfo.toLLModel()
+            val builder = AgentClientBuilder.create(llmModel, SingleLLMPromptExecutor(ollamaClient))
+                .withSystemPrompt(systemPrompt)
+                .withMaxIterations(50)
+                .withTemperature(.2)
+                .withTools(toolRegistry)
+                .withStrategy(aiAgentStrategy)
+                .withFeatures {
+                    installEventHandler()
+                    installSimpleRegexTokenizer()
+                }
+            DefaultAgentClient(builder)
+        }
+    }
+
     private fun GraphAIAgent.FeatureContext.installSimpleRegexTokenizer() {
         install(MessageTokenizer) {
             tokenizer = SimpleRegexBasedTokenizer()

@@ -234,16 +234,28 @@ private fun HeaderSection(
         val outputTokenCount = automationRunnerUiState.selectedAutomationScenario?.outputTokensCount ?: 0
         val totalTokenCount = automationRunnerUiState.selectedAutomationScenario?.totalTokensCount ?: 0
 
-        Surface(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = RoundedCornerShape(AppTheme.sizes.medium)
-        ) {
-            Text(
-                text = "Tokens | Input: $inputTokenCount· Output: $outputTokenCount · Total: $totalTokenCount",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = AppTheme.sizes.large, vertical = AppTheme.sizes.medium)
+        Column(verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)) {
+            GenericDropdown(
+                items = automationRunnerUiState.availableLLMs,
+                selectedItem = automationRunnerUiState.selectedLLM,
+                onItemSelected = { llm ->
+                    onAction(AutomationRunnerAction.LLMSelected(llm))
+                },
+                label = "LLMs",
+                placeholder = "Select a LLM Model",
+                itemText = { "${it.providerName} - ${it.modelName}" },
             )
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(AppTheme.sizes.medium)
+            ) {
+                Text(
+                    text = "Tokens | Input: $inputTokenCount· Output: $outputTokenCount · Total: $totalTokenCount",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = AppTheme.sizes.large, vertical = AppTheme.sizes.medium)
+                )
+            }
         }
     }
 }
@@ -576,6 +588,11 @@ private fun AutomationRunnerScreenPreview() {
         installedApps = listOf(
             InstalledApp(packageName = "com.example.myapp"),
             InstalledApp(packageName = "com.example.anotherapp"),
+        ),
+        availableLLMs = listOf(
+            LLMData(providerName = "Google", modelName = "Gemini Pro"),
+            LLMData(providerName = "Meta", modelName = "Llama 3"),
+            LLMData(providerName = "Ollama", modelName = "Llama 2"),
         ),
         selectedDevice = DeviceData(
             name = "Pixel 5",

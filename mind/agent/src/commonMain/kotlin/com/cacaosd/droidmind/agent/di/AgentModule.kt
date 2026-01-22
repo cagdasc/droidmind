@@ -16,13 +16,15 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import java.util.*
 
-internal object GoogleAgentQualifier : SelfResolveQualifier()
+data object GoogleAgentQualifier : SelfResolveQualifier()
 
-internal object MetaAgentQualifier : SelfResolveQualifier()
+data object MetaAgentQualifier : SelfResolveQualifier()
 
-internal object CustomAgentQualifier : SelfResolveQualifier()
+data object CustomAgentQualifier : SelfResolveQualifier()
 
-object AgentMessageFlowQualifier : SelfResolveQualifier()
+data object OllamaAgentsQualifier : SelfResolveQualifier()
+
+data object AgentMessageFlowQualifier : SelfResolveQualifier()
 
 data object AgentEventFlowQualifier : SelfResolveQualifier()
 
@@ -43,18 +45,24 @@ val agentModule = module {
         val localProperties = get<Properties>()
         agentClientFactory.createGoogleAgent(localProperties.getProperty("GEMINI_API_KEY"))
     }
+
     single(MetaAgentQualifier) {
         val agentClientFactory = get<AgentClientFactory>()
         agentClientFactory.createMetaLLamaAgent()
     }
+
     single(CustomAgentQualifier) {
         val agentClientFactory = get<AgentClientFactory>()
         agentClientFactory.createCustomModel("granite4:latest")
     }
 
+    single(OllamaAgentsQualifier) {
+        val agentClientFactory = get<AgentClientFactory>()
+        agentClientFactory.createOllamaAgents()
+    }
+
     single {
         DefaultScenarioExecutor(
-            agentClient = get(GoogleAgentQualifier),
             deviceController = get(AndroidDeviceControllerQualifier)
         )
     } bind ScenarioExecutor::class
