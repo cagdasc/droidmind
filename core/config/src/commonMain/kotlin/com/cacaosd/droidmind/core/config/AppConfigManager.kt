@@ -4,10 +4,11 @@ import com.cacaosd.droidmind.core.logging.Logger
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.Clock
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.time.Clock
+import kotlin.time.toJavaInstant
 
 /**
  * Manages application configuration directories and files
@@ -105,7 +106,8 @@ class AppConfigManager(
      */
     private fun createDefaultConfigFiles() {
         // Main configuration file
-        val dateTimeText = clock.instant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
+        val dateTimeText =
+            clock.now().toJavaInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
         if (!Files.exists(mainConfigFile)) {
             val defaultConfig = """
                 # $appName Configuration File

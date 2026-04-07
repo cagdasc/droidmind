@@ -14,11 +14,12 @@ import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import java.text.NumberFormat
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 class AutomationRunnerViewModel(
     private val scenarioExecutor: ScenarioExecutor,
@@ -356,10 +357,9 @@ class AutomationRunnerViewModel(
         }
     }
 
-    fun Instant.toLocalTimeString(timeZone: TimeZone = TimeZone.currentSystemDefault()): String {
-        val time = toLocalDateTime(timeZone).time
-        return "%02d:%02d:%02d".format(
-            time.hour, time.minute, time.second
-        )
+    fun Instant.toLocalTimeString(zoneId: ZoneId = ZoneId.systemDefault()): String {
+        val javaInstant = this.toJavaInstant()
+        val formatter = DateTimeFormatter.ofPattern("hh:mm:ss").withZone(zoneId)
+        return formatter.format(javaInstant)
     }
 }

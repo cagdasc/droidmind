@@ -28,9 +28,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21.toString()
-        freeCompilerArgs += "-Xopt-in=kotlin.time.ExperimentalTime"
+
+    kotlin {
+        compileOptions {
+            targetCompatibility = JavaVersion.VERSION_21
+        }
     }
 }
 

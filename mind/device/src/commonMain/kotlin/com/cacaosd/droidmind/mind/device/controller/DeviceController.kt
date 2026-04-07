@@ -6,7 +6,7 @@ import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import com.cacaosd.droidmind.mind.layout.parser.LayoutParser
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.time.Clock
+import kotlin.time.Clock
 
 interface DeviceController {
 

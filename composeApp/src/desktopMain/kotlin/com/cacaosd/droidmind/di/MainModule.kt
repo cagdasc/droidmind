@@ -16,8 +16,8 @@ import com.cacaosd.droidmind.mind.layout.di.layoutModule
 import com.cacaosd.droidmind.mind.verifier.di.verifierModule
 import kotlinx.coroutines.flow.MutableSharedFlow
 import org.koin.dsl.module
-import java.time.Clock
 import java.util.*
+import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 
 val mainModule = module {
@@ -34,5 +34,5 @@ val mainModule = module {
     single<MutableSharedFlow<McpMessage>>(AgentMessageFlowQualifier) { MutableSharedFlow() }
     single<MutableSharedFlow<AgentEvent>>(AgentEventFlowQualifier) { MutableSharedFlow() }
     single<Properties> { localProperties }
-    single<Clock> { Clock.systemUTC() }
+    single<Clock> { Clock.System }
 }

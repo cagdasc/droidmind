@@ -18,8 +18,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.time.Clock
 import java.util.concurrent.TimeUnit
+import kotlin.time.Clock
 
 actual fun getAndroidDeviceController(
     appConfigManager: AppConfigManager,
@@ -103,7 +103,7 @@ class AndroidDeviceController(
     override suspend fun getUiDumpFile(packageName: String, serial: String?): File? = withContext(Dispatchers.IO) {
         val device = getDevice(serial) ?: return@withContext null
 
-        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.millis())
+        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
         val xmlName = "uidump_${packageName}_$timestamp.xml"
         val remotePath = "${DeviceConstants.FILE_DOWNLOAD_PATH}/$xmlName"
 
@@ -168,7 +168,7 @@ class AndroidDeviceController(
     override suspend fun screenshot(serial: String?): String = withContext(Dispatchers.IO) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
         val screenshotsPath = appConfigManager.screenshotsDir.toAbsolutePath().toString()
-        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.millis())
+        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
 
         device.executeShellCommand(
             "screencap -p ${DeviceConstants.FILE_PICTURES_PATH}/${timestamp}.png",

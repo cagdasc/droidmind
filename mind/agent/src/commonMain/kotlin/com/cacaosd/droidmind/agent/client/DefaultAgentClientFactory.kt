@@ -20,8 +20,7 @@ import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.McpMessage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.toKotlinInstant
-import java.time.Clock
+import kotlin.time.Clock
 import kotlin.uuid.ExperimentalUuidApi
 
 class DefaultAgentClientFactory(
@@ -109,12 +108,12 @@ class DefaultAgentClientFactory(
         install(EventHandler) {
             onAgentStarting {
                 Logger.info("Agent is starting...")
-                agentEventFlow.emit(AgentEvent.Started(timestamp = clock.instant().toKotlinInstant()))
+                agentEventFlow.emit(AgentEvent.Started(timestamp = clock.now()))
             }
 
             onAgentCompleted {
                 Logger.info("Agent has finished execution.")
-                agentEventFlow.emit(AgentEvent.Completed(timestamp = clock.instant().toKotlinInstant()))
+                agentEventFlow.emit(AgentEvent.Completed(timestamp = clock.now()))
             }
 
             onLLMCallStarting { context ->
@@ -124,7 +123,7 @@ class DefaultAgentClientFactory(
                     agentEventFlow.emit(
                         AgentEvent.Prompt(
                             content = message,
-                            timestamp = clock.instant().toKotlinInstant()
+                            timestamp = clock.now()
                         )
                     )
                 }
@@ -179,7 +178,7 @@ class DefaultAgentClientFactory(
                     AgentEvent.Failure(
                         reason = strategyName,
                         throwable = throwable,
-                        timestamp = clock.instant().toKotlinInstant()
+                        timestamp = clock.now()
                     )
                 )
             }
@@ -191,7 +190,7 @@ class DefaultAgentClientFactory(
                     AgentEvent.Failure(
                         reason = context.message,
                         throwable = throwable,
-                        timestamp = clock.instant().toKotlinInstant()
+                        timestamp = clock.now()
                     )
                 )
             }
@@ -205,7 +204,7 @@ class DefaultAgentClientFactory(
                     AgentEvent.Failure(
                         reason = context.message,
                         throwable = throwable,
-                        timestamp = clock.instant().toKotlinInstant()
+                        timestamp = clock.now()
                     )
                 )
             }
@@ -222,7 +221,7 @@ class DefaultAgentClientFactory(
                     AgentEvent.Response.ToolResult(
                         toolName = context.toolName,
                         content = context.toolResult?.toString(),
-                        timestamp = clock.instant().toKotlinInstant()
+                        timestamp = clock.now()
                     )
                 )
             }

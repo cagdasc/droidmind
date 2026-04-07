@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.cacaosd.droidmind.agent.client
 
 import ai.koog.agents.core.agent.AIAgent
@@ -12,7 +14,7 @@ import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.model.PromptExecutor
 import ai.koog.prompt.llm.LLModel
 import ai.koog.prompt.params.LLMParams
-import kotlinx.datetime.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * A builder for constructing an [AIAgent] with a fluent API.
@@ -186,7 +188,7 @@ class AgentClientBuilder private constructor(
                 prompt = prompt(
                     "chat",
                     params = LLMParams(temperature = temperature, toolChoice = LLMParams.ToolChoice.Auto),
-                    clock = Clock.System,
+                    clock = kotlin.time.Clock.System,
                 ) {
                     system(finalSystemPrompt)
                     additionalPrompts.forEach { it() }
