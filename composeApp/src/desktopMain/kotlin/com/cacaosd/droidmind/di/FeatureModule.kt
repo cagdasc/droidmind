@@ -5,6 +5,7 @@ import com.cacaosd.droidmind.agent.di.GoogleAgentQualifier
 import com.cacaosd.droidmind.agent.di.MetaAgentQualifier
 import com.cacaosd.droidmind.agent.di.OllamaAgentsQualifier
 import com.cacaosd.droidmind.domain.AgentEvent
+import com.cacaosd.droidmind.domain.local.scenario.ScenarioRepository
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
 import com.cacaosd.droidmind.feature.automation_runner.AutomationRunnerViewModel
 import com.cacaosd.droidmind.feature.automation_runner.usecase.DevicePollUseCase
@@ -53,6 +54,7 @@ val featureModule = module {
             agentEventFlow = agentEventFlow,
             devicePollUseCase = get(),
             installedAppsPollUseCase = get(),
+            scenarioRepository = get<ScenarioRepository>(),
             platformDispatchers = get()
         )
     }

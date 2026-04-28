@@ -1,5 +1,8 @@
 package com.cacaosd.droidmind.feature.automation_runner
 
+import java.time.Instant
+import java.util.*
+
 data class AutomationRunnerUiState(
     val deviceDataList: List<DeviceData> = emptyList(),
     val availableLLMs: List<LLMData> = emptyList(),
@@ -16,10 +19,11 @@ data class AutomationRunnerUiState(
 )
 
 data class AutomationScenario(
+    val id: UUID,
     val name: String,
-    val description: String,
+    val shortDescription: String,
     val prompt: String,
-    val isActive: Boolean = false,
+    val timestamp: Instant,
     val inputTokensCount: String = "0",
     val outputTokensCount: String = "0",
     val totalTokensCount: String = "0",

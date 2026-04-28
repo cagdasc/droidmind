@@ -8,6 +8,8 @@ import com.cacaosd.droidmind.agent.di.agentModule
 import com.cacaosd.droidmind.agent.di.agentToolsModule
 import com.cacaosd.droidmind.agent.event.EventMapper
 import com.cacaosd.droidmind.core.config.di.coreConfigModule
+import com.cacaosd.droidmind.data_local.appdatabase.databaseModule
+import com.cacaosd.droidmind.data_local.di.dataLocalModule
 import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.McpMessage
 import com.cacaosd.droidmind.localProperties
@@ -27,7 +29,9 @@ val mainModule = module {
         verifierModule,
         deviceModule,
         agentModule,
-        agentToolsModule
+        agentToolsModule,
+        databaseModule,
+        dataLocalModule
     )
 
     single { EventMapper() }

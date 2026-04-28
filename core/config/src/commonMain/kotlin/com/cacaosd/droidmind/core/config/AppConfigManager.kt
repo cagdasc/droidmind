@@ -51,6 +51,7 @@ class AppConfigManager(
     val uiDumpDir: Path = baseConfigDir.resolve("ui_dump")
     val screenshotsDir: Path = baseConfigDir.resolve("screenshots")
     val logsDir: Path = baseConfigDir.resolve("logs")
+    val storageDir: Path = baseConfigDir.resolve("storage")
 
     // Configuration files
     val mainConfigFile: Path = configDir.resolve("config.properties")
@@ -80,7 +81,8 @@ class AppConfigManager(
             configDir,
             uiDumpDir,
             screenshotsDir,
-            logsDir
+            logsDir,
+            storageDir
         )
 
         directories.forEach { dir ->
@@ -165,6 +167,7 @@ class AppConfigManager(
     fun getUiDumpFile(filename: String): Path = uiDumpDir.resolve(filename)
     fun getScreenshotsFile(filename: String): Path = screenshotsDir.resolve(filename)
     fun getLogFile(filename: String): Path = logsDir.resolve(filename)
+    fun getStorageFile(filename: String): Path = storageDir.resolve(filename)
 
     /**
      * Check if this is the first run of the application

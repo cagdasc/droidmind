@@ -17,6 +17,8 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core:config"))
             implementation(project(":core:logging"))
+            implementation(project(":data:local"))
+            implementation(project(":domain:local"))
             implementation(project(":feature:automation-runner"))
             implementation(project(":mind:device"))
             implementation(project(":mind:layout"))
