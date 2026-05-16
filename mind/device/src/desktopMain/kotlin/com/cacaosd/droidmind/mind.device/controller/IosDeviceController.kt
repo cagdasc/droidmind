@@ -74,6 +74,9 @@ class IosDeviceController(
         }
     }
 
+    override suspend fun getNativeUiDumpFile(packageName: String, serial: String?): File? =
+        getUiDumpFile(packageName, serial)
+
     override suspend fun getOptimisedUiHierarchy(
         packageName: String,
         serial: String?

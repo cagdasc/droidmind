@@ -13,7 +13,11 @@ import ai.koog.prompt.dsl.PromptBuilder
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.model.PromptExecutor
 import ai.koog.prompt.llm.LLModel
+import ai.koog.prompt.llm.toModelInfo
 import ai.koog.prompt.params.LLMParams
+import ai.koog.utils.io.use
+import com.cacaosd.droidmind.domain.AgentClient
+import com.cacaosd.droidmind.domain.ModelType
 import kotlin.time.ExperimentalTime
 
 /**
@@ -28,8 +32,9 @@ import kotlin.time.ExperimentalTime
  */
 class AgentClientBuilder private constructor(
     private val llmModel: LLModel,
-    private val executor: PromptExecutor
-) {
+    private val executor: PromptExecutor,
+    override val modelType: ModelType
+) : AgentClient {
     private var systemPrompt: String? = null
     private var additionalPrompts: MutableList<PromptBuilder.() -> Unit> = mutableListOf()
     private var toolRegistry: ToolRegistry = ToolRegistry.EMPTY
@@ -49,8 +54,8 @@ class AgentClientBuilder private constructor(
          * @param executor The prompt executor for handling LLM interactions.
          * @return A new builder instance.
          */
-        fun create(llmModel: LLModel, executor: PromptExecutor): AgentClientBuilder {
-            return AgentClientBuilder(llmModel, executor)
+        fun create(llmModel: LLModel, executor: PromptExecutor, modelType: ModelType): AgentClientBuilder {
+            return AgentClientBuilder(llmModel, executor, modelType)
         }
     }
 
@@ -199,5 +204,17 @@ class AgentClientBuilder private constructor(
             toolRegistry = toolRegistry,
             installFeatures = features
         )
+    }
+
+    override val modelName: String
+        get() = llmModel.toModelInfo().model
+
+    override val modelProvider: String
+        get() = llmModel.toModelInfo().provider
+
+    override suspend fun executePrompt(prompt: String) {
+        build().use {
+            it.run(prompt)
+        }
     }
 }

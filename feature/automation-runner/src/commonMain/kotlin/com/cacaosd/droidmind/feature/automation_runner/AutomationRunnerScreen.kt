@@ -22,9 +22,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.feature.automation_runner.composable.*
 import com.cacaosd.uikit.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import java.time.Instant
 import java.util.*
 
 @Composable
@@ -237,7 +239,7 @@ private fun HeaderSection(
         ) {
             // Device selector
             Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)) {
-                GenericDropdown(
+                SimpleDropdown(
                     items = automationRunnerUiState.deviceDataList,
                     selectedItem = automationRunnerUiState.selectedDevice,
                     onItemSelected = { device ->
@@ -245,11 +247,11 @@ private fun HeaderSection(
                     },
                     label = "Device",
                     placeholder = "Select device",
-                    itemText = { it.name },
+                    item = { it.name },
                 )
 
                 if (automationRunnerUiState.installedApps.isNotEmpty()) {
-                    GenericDropdown(
+                    SimpleDropdown(
                         items = automationRunnerUiState.installedApps,
                         selectedItem = automationRunnerUiState.selectedApp,
                         onItemSelected = { app ->
@@ -257,7 +259,7 @@ private fun HeaderSection(
                         },
                         label = "App",
                         placeholder = "Select an app",
-                        itemText = { it.packageName },
+                        item = { it.packageName },
                     )
                 }
             }
@@ -283,15 +285,15 @@ private fun HeaderSection(
         val totalTokenCount = automationRunnerUiState.selectedAutomationScenario?.totalTokensCount ?: 0
 
         Column(verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)) {
-            GenericDropdown(
-                items = automationRunnerUiState.availableLLMs,
+            SectionedDropdown(
+                sections = automationRunnerUiState.availableLLMs,
                 selectedItem = automationRunnerUiState.selectedLLM,
                 onItemSelected = { llm ->
                     onAction(AutomationRunnerAction.LLMSelected(llm))
                 },
                 label = "LLMs",
                 placeholder = "Select a LLM Model",
-                itemText = { "${it.providerName} - ${it.modelName}" },
+                item = { "${it.providerName} - ${it.modelName}" },
             )
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -621,7 +623,7 @@ private fun AutomationRunnerScreenPreview() {
             name = "User Login Flow",
             shortDescription = "Automates the user login process including inputting credentials and handling 2FA.",
             prompt = "Automate the user login process including inputting credentials and handling 2FA.",
-            timestamp = java.time.Instant.now(),
+            timestamp = Instant.now(),
             inputTokensCount = "150",
             outputTokensCount = "75",
             totalTokensCount = "225",
@@ -631,7 +633,7 @@ private fun AutomationRunnerScreenPreview() {
             name = "Data Extraction",
             shortDescription = "Extracts user data from the profile section of the app.",
             prompt = "Extract user data from the profile section of the app.",
-            timestamp = java.time.Instant.now(),
+            timestamp = Instant.now(),
             inputTokensCount = "120",
             outputTokensCount = "60",
             totalTokensCount = "180",
@@ -666,9 +668,48 @@ private fun AutomationRunnerScreenPreview() {
             InstalledApp(packageName = "com.example.anotherapp"),
         ),
         availableLLMs = listOf(
-            LLMData(providerName = "Google", modelName = "Gemini Pro"),
-            LLMData(providerName = "Meta", modelName = "Llama 3"),
-            LLMData(providerName = "Ollama", modelName = "Llama 2"),
+            DropdownSectionItem(
+                header = "Remote",
+                listOf(
+                    LLMData(
+                        providerName = "Google", modelName = "Gemini Pro",
+                        modelType = ModelType.Remote,
+                        agentClient = object : AgentClient {
+                            override val modelProvider: String = "Google"
+                            override val modelName: String = "Google Model"
+                            override val modelType: com.cacaosd.droidmind.domain.ModelType =
+                                com.cacaosd.droidmind.domain.ModelType.REMOTE
+
+                            override suspend fun executePrompt(prompt: String) {}
+                        }
+                    ),
+                    LLMData(
+                        providerName = "Meta", modelName = "Llama 3",
+                        modelType = ModelType.Remote,
+                        agentClient = object : AgentClient {
+                            override val modelProvider: String = "Google"
+                            override val modelName: String = "Google Model"
+                            override val modelType: com.cacaosd.droidmind.domain.ModelType =
+                                com.cacaosd.droidmind.domain.ModelType.REMOTE
+
+                            override suspend fun executePrompt(prompt: String) {}
+                        }),
+                    LLMData(
+                        providerName = "Ollama",
+                        modelName = "Llama 2",
+                        modelType = ModelType.Remote,
+                        agentClient = object : AgentClient {
+                            override val modelProvider: String = "Google"
+                            override val modelName: String = "Google Model"
+                            override val modelType: com.cacaosd.droidmind.domain.ModelType =
+                                com.cacaosd.droidmind.domain.ModelType.REMOTE
+
+                            override suspend fun executePrompt(prompt: String) {}
+                        }
+                    ),
+                )
+            )
+
         ),
         selectedDevice = DeviceData(
             name = "Pixel 5",

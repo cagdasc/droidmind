@@ -1,9 +1,6 @@
 package com.cacaosd.droidmind.di
 
 import com.cacaosd.droidmind.agent.di.AgentEventFlowQualifier
-import com.cacaosd.droidmind.agent.di.GoogleAgentQualifier
-import com.cacaosd.droidmind.agent.di.MetaAgentQualifier
-import com.cacaosd.droidmind.agent.di.OllamaAgentsQualifier
 import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.local.scenario.ScenarioRepository
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
@@ -35,11 +32,7 @@ val featureModule = module {
     }
 
     single {
-        GetAvailableLLMsUseCase(
-            googleAgentClient = get(GoogleAgentQualifier),
-            metaAgentClient = get(MetaAgentQualifier),
-            ollamaAgentClients = get(OllamaAgentsQualifier)
-        )
+        GetAvailableLLMsUseCase(agentClientFactory = get(), platformDispatchers = get())
     }
 
     viewModel {

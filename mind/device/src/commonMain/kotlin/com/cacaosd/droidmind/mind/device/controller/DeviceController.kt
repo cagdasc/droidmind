@@ -18,6 +18,8 @@ interface DeviceController {
 
     suspend fun getUiDumpFile(packageName: String, serial: String?): File?
 
+    suspend fun getNativeUiDumpFile(packageName: String, serial: String?): File?
+
     suspend fun getOptimisedUiHierarchy(packageName: String, serial: String?): OptimisedHierarchy?
 
     suspend fun inputText(text: String, serial: String?): String

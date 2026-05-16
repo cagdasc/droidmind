@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 
 actual fun getAndroidDeviceController(
     appConfigManager: AppConfigManager,
@@ -39,7 +40,7 @@ internal suspend fun IDevice.executeShellCommandWithDelay(
     delayInMillis: Long = 2000L
 ) {
     this.executeShellCommand(command, receiver)
-    delay(delayInMillis)
+    delay(delayInMillis.milliseconds)
 }
 
 class AndroidDeviceController(
@@ -115,7 +116,7 @@ class AndroidDeviceController(
                 "FILENAME" to xmlName
             )
         )
-        delay(250) // Wait for the dump to be created
+        delay(250.milliseconds) // Wait for the dump to be created
 
         appConfigManager.getUiDumpFile(filename = xmlName).toFile().apply {
             device.pullFile(remotePath, absolutePath)
@@ -123,9 +124,27 @@ class AndroidDeviceController(
         }
     }
 
-    override suspend fun getOptimisedUiHierarchy(packageName: String, serial: String?): OptimisedHierarchy? {
+    override suspend fun getNativeUiDumpFile(packageName: String, serial: String?): File? =
+        withContext(Dispatchers.IO) {
+            val device = getDevice(serial) ?: return@withContext null
+
+            val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
+            val xmlName = "uidump_${packageName}_$timestamp.xml"
+            val remotePath = "/sdcard/$xmlName"
+
+            device.executeShellCommand("uiautomator dump $remotePath", CollectingReceiver())
+
+            delay(250.milliseconds) // Wait for the dump to be created
+
+        appConfigManager.getUiDumpFile(filename = xmlName).toFile().apply {
+            device.pullFile(remotePath, absolutePath)
+            device.executeShellCommand("rm $remotePath", CollectingReceiver())
+        }
+    }
+
+    override suspend fun getOptimisedUiHierarchy(packageName: String, serial: String?): OptimisedHierarchy {
         val uiDumpFile =
-            getUiDumpFile(packageName = packageName, serial = serial) ?: error("Failed to get UI dump file")
+            getNativeUiDumpFile(packageName = packageName, serial = serial) ?: error("Failed to get UI dump file")
         return layoutParser.parse(uiDumpFile)
     }
 

@@ -5,7 +5,12 @@ interface AgentClient {
 
     val modelName: String
 
-    suspend fun executePrompt(prompt: String)
+    val modelType: ModelType
 
-    suspend fun stop()
+    suspend fun executePrompt(prompt: String)
+}
+
+enum class ModelType {
+    LOCAL,
+    REMOTE
 }

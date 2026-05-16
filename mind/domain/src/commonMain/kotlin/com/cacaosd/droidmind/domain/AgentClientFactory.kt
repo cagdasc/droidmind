@@ -1,11 +1,8 @@
 package com.cacaosd.droidmind.domain
 
 interface AgentClientFactory {
-    fun createGoogleAgent(apiKey: String): AgentClient
 
-    fun createMetaLLamaAgent(): AgentClient
+    fun createRemoteModel(): List<AgentClient>
 
-    fun createCustomModel(modelName: String): AgentClient
-
-    fun createOllamaAgents(): List<AgentClient>
+    suspend fun createLocalAgents(): List<AgentClient>
 }

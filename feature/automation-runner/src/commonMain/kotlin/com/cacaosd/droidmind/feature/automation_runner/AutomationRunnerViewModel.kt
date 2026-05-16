@@ -4,13 +4,13 @@ package com.cacaosd.droidmind.feature.automation_runner
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.local.scenario.ScenarioModel
 import com.cacaosd.droidmind.domain.local.scenario.ScenarioRepository
 import com.cacaosd.droidmind.domain.session.ExecutionMode
 import com.cacaosd.droidmind.domain.session.ScenarioExecutionRequest
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
+import com.cacaosd.droidmind.feature.automation_runner.composable.DropdownSectionItem
 import com.cacaosd.droidmind.feature.automation_runner.usecase.DevicePollUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.GetAvailableLLMsUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.InstalledAppsPollUseCase
@@ -43,11 +43,7 @@ class AutomationRunnerViewModel(
 
     private var installedAppsJob: Job? = null
     private var agentJob: Job? = null
-    private val availableAgentClients: List<AgentClient>
-        get() = getAvailableLLMsUseCase.invoke()
     private val numberFormat: NumberFormat = NumberFormat.getNumberInstance(Locale.UK)
-
-    private var agentClient: AgentClient? = null
 
     init {
         pollDevices()
@@ -55,22 +51,6 @@ class AutomationRunnerViewModel(
         fetchScenarios()
         updateScenariosOnChange()
         collectAgentEvents()
-    }
-
-    private fun updateScenariosOnChange() {
-        scenarioUpdateFlow.debounce(100.milliseconds)
-            .onEach {
-                scenarioRepository.saveScenario(
-                    ScenarioModel(
-                        id = it.id,
-                        title = it.title,
-                        shortDescription = it.shortDescription,
-                        prompt = it.prompt,
-                        timestamp = it.timestamp,
-                    )
-                )
-            }
-            .launchIn(viewModelScope)
     }
 
     private fun pollDevices() {
@@ -90,18 +70,6 @@ class AutomationRunnerViewModel(
         }.launchIn(viewModelScope)
     }
 
-    private fun loadAvailableLLMs() {
-        val availableLLMs = availableAgentClients.map {
-            LLMData(
-                providerName = it.modelProvider,
-                modelName = it.modelName
-            )
-        }
-        _automationRunnerUiState.update { state ->
-            state.copy(availableLLMs = availableLLMs)
-        }
-    }
-
     private fun pollForInstalledApp(deviceSerial: String) {
         installedAppsJob?.cancel()
         installedAppsJob = installedAppsPollUseCase.pollInstalledApps(deviceSerial).onEach { listOfApps ->
@@ -110,6 +78,25 @@ class AutomationRunnerViewModel(
                     .map { InstalledApp(packageName = it) })
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun loadAvailableLLMs() {
+        viewModelScope.launch {
+            val availableLLMs = getAvailableLLMsUseCase()
+                .groupBy { it.modelType }
+                .map { entry ->
+                    DropdownSectionItem(
+                        header = when (entry.key) {
+                            ModelType.Local -> "Local Models"
+                            ModelType.Remote -> "Remote Models"
+                        },
+                        items = entry.value,
+                    )
+                }
+            _automationRunnerUiState.update { state ->
+                state.copy(availableLLMs = availableLLMs)
+            }
+        }
     }
 
     private fun fetchScenarios() {
@@ -135,6 +122,22 @@ class AutomationRunnerViewModel(
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun updateScenariosOnChange() {
+        scenarioUpdateFlow.debounce(100.milliseconds)
+            .onEach {
+                scenarioRepository.saveScenario(
+                    ScenarioModel(
+                        id = it.id,
+                        title = it.title,
+                        shortDescription = it.shortDescription,
+                        prompt = it.prompt,
+                        timestamp = it.timestamp,
+                    )
+                )
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun collectAgentEvents() {
@@ -391,21 +394,21 @@ class AutomationRunnerViewModel(
         val installedApp = currentState.selectedApp ?: return
         val selectedLLM = currentState.selectedLLM ?: return
 
-        agentClient = availableAgentClients.find { it.modelName == selectedLLM.modelName } ?: return
-
         agentJob?.cancel()
         agentJob = viewModelScope.launch(platformDispatchers.default) {
             val scenarioExecutionRequest = ScenarioExecutionRequest.builder(
-                deviceData.serial, installedApp.packageName, prompt, when (currentState.promptMode) {
+                deviceSerial = deviceData.serial,
+                packageName = installedApp.packageName,
+                scenario = prompt,
+                executionMode = when (currentState.promptMode) {
                     PromptMode.PLAIN_TEXT -> ExecutionMode.TEXT
                     PromptMode.MIND_SCRIPT -> ExecutionMode.SCRIPT
                 }
             )
-//                .expectation("Once you done with the scenario, explain what you have done.")
                 .build()
 
             scenarioExecutor.execute(
-                agentClient = agentClient!!,
+                agentClient = selectedLLM.agentClient,
                 request = scenarioExecutionRequest,
             )
         }

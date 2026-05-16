@@ -1,4 +1,4 @@
-package com.cacaosd.droidmind.agent
+package com.cacaosd.droidmind.agent.strategy
 
 import ai.koog.agents.ext.agent.chatAgentStrategy
 

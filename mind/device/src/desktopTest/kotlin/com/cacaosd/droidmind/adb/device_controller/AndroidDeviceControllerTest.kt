@@ -3,16 +3,17 @@ package com.cacaosd.droidmind.adb.device_controller
 import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.mind.device.controller.AndroidDeviceController
 import com.cacaosd.droidmind.mind.device.controller.getAndroidDeviceController
+import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
+import com.cacaosd.droidmind.mind.layout.parser.LayoutParser
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import java.time.Clock
-import java.time.Instant
+import java.io.File
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
 class AndroidDeviceControllerTest {
 
-    private val fixedClock = Clock.fixed(Instant.parse("2023-10-01T00:00:00Z"), Clock.systemUTC().zone)
+    private val fixedClock = kotlin.time.Clock.System
     private val androidDeviceController = getAndroidDeviceController(
         AppConfigManager(
             appName = "mcpformobile",
@@ -20,6 +21,23 @@ class AndroidDeviceControllerTest {
             packageName = "com.cacaosd.droidmind",
             clock = fixedClock
         ),
+        layoutParser = object : LayoutParser {
+            override fun parse(uiDumpFile: File): OptimisedHierarchy {
+                return OptimisedHierarchy(
+                    rotation = com.cacaosd.droidmind.mind.layout.model.ScreenRotation.PORTRAIT,
+                    root = com.cacaosd.droidmind.mind.layout.model.UiElement(
+                        type = com.cacaosd.droidmind.mind.layout.model.ElementType.Button,
+                        text = "Test Button",
+                        contentDescription = "A button for testing",
+                        bounds = com.cacaosd.droidmind.mind.layout.model.Rect(0, 0, 100, 50),
+                        clickable = true,
+                        focusable = true,
+                        enabled = true,
+                        children = emptyList()
+                    )
+                )
+            }
+        },
         clock = fixedClock
     ) as AndroidDeviceController
 
@@ -30,6 +48,11 @@ class AndroidDeviceControllerTest {
             val appLabel = androidDeviceController.getAppLabel("emulator-5554", it)
             println(appLabel)
         }
+    }
+
+    @Test
+    fun testUiDump(): Unit = runBlocking {
+        androidDeviceController.getNativeUiDumpFile("com.nutmeg.app", "48261FDAS000D9")
     }
 
     @Test

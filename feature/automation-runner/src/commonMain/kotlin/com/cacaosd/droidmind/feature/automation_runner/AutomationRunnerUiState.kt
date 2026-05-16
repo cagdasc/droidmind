@@ -1,11 +1,13 @@
 package com.cacaosd.droidmind.feature.automation_runner
 
+import com.cacaosd.droidmind.domain.AgentClient
+import com.cacaosd.droidmind.feature.automation_runner.composable.DropdownSectionItem
 import java.time.Instant
 import java.util.*
 
 data class AutomationRunnerUiState(
     val deviceDataList: List<DeviceData> = emptyList(),
-    val availableLLMs: List<LLMData> = emptyList(),
+    val availableLLMs: List<DropdownSectionItem<LLMData>> = emptyList(),
     val selectedLLM: LLMData? = null,
     val installedApps: List<InstalledApp> = emptyList(),
     val selectedDevice: DeviceData? = null,
@@ -58,7 +60,14 @@ data class DeviceData(
 data class LLMData(
     val providerName: String,
     val modelName: String,
+    val modelType: ModelType,
+    val agentClient: AgentClient
 )
+
+enum class ModelType {
+    Local,
+    Remote
+}
 
 data class InstalledApp(
     val packageName: String,
