@@ -13,11 +13,15 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.cacaosd.droidmind.feature.automation_runner.*
+import com.cacaosd.droidmind.feature.automation_runner.ChipItem
+import com.cacaosd.droidmind.feature.automation_runner.DeviceData
+import com.cacaosd.droidmind.feature.automation_runner.InstalledApp
+import com.cacaosd.droidmind.feature.automation_runner.PromptMode
 import com.cacaosd.uikit.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -31,15 +35,21 @@ val expectFunctions = setOf("VerifyText", "UiVisible")
 
 @Composable
 fun ScenarioTextField(
-    automationRunnerUiState: AutomationRunnerUiState,
-    onAction: (AutomationRunnerAction) -> Unit
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    promptMode: PromptMode,
+    onPromptModeChange: (PromptMode) -> Unit,
+    enabled: Boolean,
+    chipItems: List<ChipItem>,
+    onChipRemove: (ChipItem) -> Unit,
+    onRun: () -> Unit,
+    label: String = "Scenario"
 ) {
-    val keywordColor = Color(0xFF21042B) // Purple for keywords
-    val actionColor = Color(0xFF7D3C06) // Orange for actions
-    val expectColor = Color(0xFF7878D9) // Blue for expect functions
+    val keywordColor = Color(0xFF21042B)
+    val actionColor = Color(0xFF7D3C06)
+    val expectColor = Color(0xFF7878D9)
     val normalColor = MaterialTheme.colorScheme.onPrimaryContainer
 
-    // Convert TextStyle to SpanStyle
     val baseTextStyle = MaterialTheme.typography.bodyLarge
     val baseSpanStyle = SpanStyle(
         color = normalColor,
@@ -52,38 +62,34 @@ fun ScenarioTextField(
 
     fun buildHighlightedText(text: String) = buildAnnotatedString {
         val words = text.split(Regex("\\b"))
-
         words.forEach { word ->
             when {
-                keywords.contains(word) -> {
-                    withStyle(style = baseSpanStyle.copy(color = keywordColor, fontWeight = FontWeight.Bold)) {
-                        append(word)
-                    }
+                keywords.contains(word) -> withStyle(
+                    style = baseSpanStyle.copy(
+                        color = keywordColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) { append(word) }
+
+                actions.contains(word) -> withStyle(
+                    style = baseSpanStyle.copy(
+                        color = actionColor,
+                        fontStyle = FontStyle.Italic
+                    )
+                ) { append(word) }
+
+                expectFunctions.contains(word) -> withStyle(style = baseSpanStyle.copy(color = expectColor)) {
+                    append(
+                        word
+                    )
                 }
 
-                actions.contains(word) -> {
-                    withStyle(style = baseSpanStyle.copy(color = actionColor, fontStyle = FontStyle.Italic)) {
-                        append(word)
-                    }
-                }
-
-                expectFunctions.contains(word) -> {
-                    withStyle(style = baseSpanStyle.copy(color = expectColor)) {
-                        append(word)
-                    }
-                }
-
-                else -> {
-                    withStyle(style = baseSpanStyle.copy(color = normalColor)) {
-                        append(word)
-                    }
-                }
+                else -> withStyle(style = baseSpanStyle.copy(color = normalColor)) { append(word) }
             }
-
         }
     }
 
-    val visualTransformation = if (automationRunnerUiState.promptMode == PromptMode.MIND_SCRIPT) {
+    val visualTransformation = if (promptMode == PromptMode.MIND_SCRIPT) {
         VisualTransformation { text ->
             TransformedText(
                 buildHighlightedText(text.text),
@@ -94,15 +100,9 @@ fun ScenarioTextField(
         VisualTransformation.None
     }
 
-    val enabled = (automationRunnerUiState.selectedAutomationScenario != null
-            && automationRunnerUiState.executionState !is ExecutionState.Executing)
     TextField(
-        value = automationRunnerUiState.selectedAutomationScenario?.prompt.orEmpty(),
-        onValueChange = {
-            automationRunnerUiState.selectedAutomationScenario?.let { _ ->
-                onAction(AutomationRunnerAction.UpdatePrompt(it))
-            }
-        },
+        value = value,
+        onValueChange = onValueChange,
         label = {
             Column(
                 modifier = Modifier.padding(bottom = AppTheme.sizes.small),
@@ -113,13 +113,11 @@ fun ScenarioTextField(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Scenario", style = MaterialTheme.typography.titleLarge)
-
-                    // Segmented Control for Editor Mode
+                    Text(text = label, style = MaterialTheme.typography.titleLarge)
                     SegmentedButton(
-                        selectedMode = automationRunnerUiState.promptMode,
+                        selectedMode = promptMode,
                         enabled = enabled,
-                        onModeChange = { onAction(AutomationRunnerAction.PromptModeChanged(it)) }
+                        onModeChange = onPromptModeChange
                     )
                 }
 
@@ -128,12 +126,10 @@ fun ScenarioTextField(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                        if (automationRunnerUiState.chipItems.isNotEmpty()) {
+                        if (chipItems.isNotEmpty()) {
                             ChipFlowRow(
-                                items = automationRunnerUiState.chipItems.toList(),
-                                onItemToggle = { item ->
-                                    onAction(AutomationRunnerAction.RemoveChip(item))
-                                },
+                                items = chipItems,
+                                onItemToggle = onChipRemove,
                                 chipText = { it.label },
                             )
                         }
@@ -148,12 +144,7 @@ fun ScenarioTextField(
                     .fillMaxHeight()
             ) {
                 Button(
-                    onClick = {
-                        val selectedAutomationScenario = automationRunnerUiState.selectedAutomationScenario
-                        selectedAutomationScenario?.let {
-                            onAction(AutomationRunnerAction.RunScenarioClicked(it))
-                        }
-                    },
+                    onClick = onRun,
                     modifier = Modifier.align(Alignment.BottomEnd),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary,
@@ -227,26 +218,24 @@ fun PreviewSyntaxHighlightedTextField() {
     MaterialTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             ScenarioTextField(
-                automationRunnerUiState = AutomationRunnerUiState(
-                    selectedAutomationScenario = AutomationScenario(
-                        name = "Sample Scenario",
-                        description = "A sample automation scenario",
-                        prompt = """
-                            SCENARIO: Sample Scenario
-                            DEVICE: MyDevice
-                            APP: com.example.app
-                            DO:
-                                launch_app com.example.app
-                                tap 100 200
-                                input_text "Hello World"
-                            EXPECT:
-                                VerifyText "Welcome"
-                        """.trimIndent()
+                value = TextFieldValue("SCENARIO: Test Scenario\nDEVICE: Pixel 4a\nAPP: com.example.app\nDO:\n  tap(x=100, y=200)\n  input_text(\"Hello World\")\nEXPECT:\n  VerifyText(\"Welcome\")\n  UiVisible(\"com.example.app:id/welcome_message\")"),
+                onValueChange = {},
+                promptMode = PromptMode.MIND_SCRIPT,
+                onPromptModeChange = {},
+                enabled = true,
+                chipItems = listOf(
+                    ChipItem.Device(
+                        DeviceData(
+                            name = "Pixel 4a",
+                            serial = "1234567890",
+                            screenWidth = 1080,
+                            screenHeight = 2340
+                        )
                     ),
-                    chipItems = emptySet(),
-                    executionState = ExecutionState.Idle
+                    ChipItem.App(InstalledApp(packageName = "com.example.app"))
                 ),
-                onAction = {}
+                onChipRemove = {},
+                onRun = {}
             )
         }
     }

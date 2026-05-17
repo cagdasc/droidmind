@@ -1,6 +1,7 @@
 [versions]
 # Kotlin core
-kotlin = "2.1.21"
+kotlin = "2.3.20"
+ksp-version = "2.3.7"
 kotlinx-serialization = "1.9.0"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.6.2"
@@ -17,6 +18,10 @@ android-tools-version = "31.1.1"
 android-ddms-version = "31.10.1"
 adblib-version = "8.11.1"
 
+# Room and SQLite
+room-version = "2.8.4"
+sqlite-version = "2.6.2"
+
 # Testing
 junit = "4.13.2"
 
@@ -31,7 +36,7 @@ logback-version = "1.5.24"
 kotlin-logging-version = "7.0.14"
 
 # Misc / Libraries
-koog-version = "0.6.0"
+koog-version = "0.7.3"
 xmlutil-version = "0.91.3"
 
 # Multiplatform
@@ -92,6 +97,13 @@ platform-coroutines = { module = "com.github.cagdasc.kmp-platform-foundation:cor
 platform-coroutines-di = { module = "com.github.cagdasc.kmp-platform-foundation:coroutines-di", version.ref = "foundation-coroutines" }
 ui-theme = { module = "com.github.cagdasc.kmp-ui-foundation:theme", version.ref = "foundation-ui" }
 
+# ---- Room and Database ----
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room-version" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room-version" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room-version" }
+room-sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqlite-version" }
+room-sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "sqlite-version" }
+
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
@@ -100,3 +112,5 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-application = { id = "com.android.application", version.ref = "agpVersion" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp-version" }
+androidx-room = { id = "androidx.room", version.ref = "room-version" }

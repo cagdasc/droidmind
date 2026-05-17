@@ -1,12 +1,13 @@
 package com.cacaosd.droidmind.agent.di
 
 import ai.koog.agents.core.tools.ToolRegistry
-import ai.koog.agents.core.tools.reflect.asTools
 import com.cacaosd.droidmind.agent.client.DefaultAgentClientFactory
 import com.cacaosd.droidmind.agent.session.DefaultScenarioExecutor
-import com.cacaosd.droidmind.agent.toolExecutionStrategy
+import com.cacaosd.droidmind.agent.strategy.reasoningStrategy
 import com.cacaosd.droidmind.agent.tools.DeviceControllerTools
 import com.cacaosd.droidmind.agent.tools.TestCaseVerifierTools
+import com.cacaosd.droidmind.agent.tools.UiHierarchyTools
+import com.cacaosd.droidmind.agent.tools.UiInteractionTools
 import com.cacaosd.droidmind.core.config.di.SelfResolveQualifier
 import com.cacaosd.droidmind.domain.AgentClientFactory
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
@@ -16,13 +17,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import java.util.*
 
-internal object GoogleAgentQualifier : SelfResolveQualifier()
-
-internal object MetaAgentQualifier : SelfResolveQualifier()
-
-internal object CustomAgentQualifier : SelfResolveQualifier()
-
-object AgentMessageFlowQualifier : SelfResolveQualifier()
+data object AgentMessageFlowQualifier : SelfResolveQualifier()
 
 data object AgentEventFlowQualifier : SelfResolveQualifier()
 
@@ -34,27 +29,13 @@ val agentModule = module {
             eventMapper = get(),
             agentMessageFlow = get(AgentMessageFlowQualifier),
             agentEventFlow = get(AgentEventFlowQualifier),
+            properties = get<Properties>(),
             clock = get()
         )
     } bind AgentClientFactory::class
 
-    single(GoogleAgentQualifier) {
-        val agentClientFactory = get<AgentClientFactory>()
-        val localProperties = get<Properties>()
-        agentClientFactory.createGoogleAgent(localProperties.getProperty("GEMINI_API_KEY"))
-    }
-    single(MetaAgentQualifier) {
-        val agentClientFactory = get<AgentClientFactory>()
-        agentClientFactory.createMetaLLamaAgent()
-    }
-    single(CustomAgentQualifier) {
-        val agentClientFactory = get<AgentClientFactory>()
-        agentClientFactory.createCustomModel("granite4:latest")
-    }
-
     single {
         DefaultScenarioExecutor(
-            agentClient = get(GoogleAgentQualifier),
             deviceController = get(AndroidDeviceControllerQualifier)
         )
     } bind ScenarioExecutor::class
@@ -62,6 +43,8 @@ val agentModule = module {
 
 val agentToolsModule = module {
     single { DeviceControllerTools(deviceController = get(AndroidDeviceControllerQualifier)) }
+    single { UiHierarchyTools(deviceController = get(AndroidDeviceControllerQualifier)) }
+    single { UiInteractionTools(deviceController = get(AndroidDeviceControllerQualifier)) }
     single {
         TestCaseVerifierTools(
             verifier = get<Verifier>(),
@@ -72,12 +55,13 @@ val agentToolsModule = module {
     single<ToolRegistry> {
         ToolRegistry {
             tools(toolsList = get<DeviceControllerTools>().asTools())
+            tools(toolsList = get<UiHierarchyTools>().asTools())
+            tools(toolsList = get<UiInteractionTools>().asTools())
+//            tool(ExitTool)
             tools(toolsList = get<TestCaseVerifierTools>().asTools())
         }
     }
-    single { toolExecutionStrategy("Adb tool execution strategy") }
-//    single { reActStrategy(
-//        reasoningInterval = 1,
-//        name = "ui_test_agent_strategy"
-//    ) }
+//    single { toolExecutionStrategy("Adb tool execution strategy") }
+    single { reasoningStrategy() }
+//    single { chatAgentStrategy() }
 }

@@ -13,8 +13,8 @@ import org.openqa.selenium.WebDriverException
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
-import java.time.Clock
 import java.util.concurrent.TimeUnit
+import kotlin.time.Clock
 
 actual fun getIosDeviceController(
     json: Json,
@@ -64,7 +64,7 @@ class IosDeviceController(
         val serial = serial ?: error("Serial cannot be null for iOS devices")
         val pageSource = iOSDeviceBridge.useDriver(serial) { it.pageSource }
 
-        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.millis())
+        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
         val xmlName = "uidump_${packageName}_$timestamp.xml"
 
         delay(250) // Wait for the dump to be created
@@ -73,6 +73,9 @@ class IosDeviceController(
             writeText(pageSource.orEmpty())
         }
     }
+
+    override suspend fun getNativeUiDumpFile(packageName: String, serial: String?): File? =
+        getUiDumpFile(packageName, serial)
 
     override suspend fun getOptimisedUiHierarchy(
         packageName: String,
@@ -121,7 +124,7 @@ class IosDeviceController(
     override suspend fun screenshot(serial: String?): String {
         val serial = serial ?: error("Serial cannot be null for iOS devices")
 
-        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.millis())
+        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
         iOSDeviceBridge.useDriver(serial) { driver ->
             driver.getScreenshotAs(object : OutputType<File> {
                 override fun convertFromBase64Png(base64Png: String): File {

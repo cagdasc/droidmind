@@ -12,22 +12,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.feature.automation_runner.composable.*
 import com.cacaosd.uikit.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import java.time.Instant
+import java.util.*
 
 @Composable
 fun AutomationRunnerScreen(automationRunnerViewModel: AutomationRunnerViewModel) {
@@ -47,6 +47,7 @@ private fun InternalAutomationRunnerScreen(
         // Sidebar
         SidebarPanel(
             automationScenarios = automationRunnerUiState.automationScenarios,
+            selectedAutomationScenario = automationRunnerUiState.selectedAutomationScenario,
             onAction = onAction
         )
 
@@ -78,6 +79,7 @@ private fun InternalAutomationRunnerScreen(
 @Composable
 private fun SidebarPanel(
     automationScenarios: List<AutomationScenario>,
+    selectedAutomationScenario: AutomationScenario?,
     onAction: (AutomationRunnerAction) -> Unit
 ) {
     Surface(
@@ -112,7 +114,20 @@ private fun SidebarPanel(
                 verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)
             ) {
                 items(automationScenarios) { scenario ->
-                    ScenarioCard(scenario)
+                    ScenarioCard(
+                        automationScenario = scenario,
+                        isSelected = scenario.id == selectedAutomationScenario?.id,
+                        onClick = { onAction(AutomationRunnerAction.ScenarioSelected(scenario)) },
+                        onRemoveClicked = { onAction(AutomationRunnerAction.RemoveScenarioClicked(scenario)) },
+                        onNameChanged = { newName -> onAction(AutomationRunnerAction.UpdateName(newName)) },
+                        onShortDescriptionChanged = { newDesc ->
+                            onAction(
+                                AutomationRunnerAction.UpdateShortDescription(
+                                    newDesc
+                                )
+                            )
+                        },
+                    )
                 }
             }
         }
@@ -120,18 +135,24 @@ private fun SidebarPanel(
 }
 
 @Composable
-private fun ScenarioCard(automationScenario: AutomationScenario) {
-    val backgroundColor = if (automationScenario.isActive) {
-        Color.White.copy(alpha = 0.5f)
-    } else {
-        Color.Transparent
+private fun ScenarioCard(
+    automationScenario: AutomationScenario,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    onRemoveClicked: () -> Unit,
+    onNameChanged: (String) -> Unit,
+    onShortDescriptionChanged: (String) -> Unit,
+) {
+    val backgroundColor = when {
+        isSelected -> MaterialTheme.colorScheme.secondaryContainer
+        else -> Color.Transparent
     }
 
     Surface(
         modifier = Modifier
             .clip(MaterialTheme.shapes.medium)
             .fillMaxWidth()
-            .clickable { },
+            .clickable { onClick() },
         color = backgroundColor,
         shape = MaterialTheme.shapes.medium
     ) {
@@ -143,35 +164,64 @@ private fun ScenarioCard(automationScenario: AutomationScenario) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = automationScenario.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                var nameState by remember { mutableStateOf(TextFieldValue(automationScenario.name)) }
+                EditableTextField(
+                    value = nameState,
+                    onValueChange = { newValue ->
+                        nameState = newValue
+                        onNameChanged(newValue.text)
+                    },
+                    onClick = onClick,
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    focusedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    focusedBackgroundColor = MaterialTheme.colorScheme.onPrimary,
+                    singleLine = true,
+                    placeholder = "New Scenario"
                 )
-                if (automationScenario.isActive) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Text(
-                            text = "Active",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(
-                                horizontal = AppTheme.sizes.medium,
-                                vertical = AppTheme.sizes.xsmall
+                Row {
+                    if (isSelected) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text(
+                                text = "Active",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(
+                                    horizontal = AppTheme.sizes.medium,
+                                    vertical = AppTheme.sizes.xsmall
+                                )
                             )
+                        }
+                    }
+                    IconButton(onClick = { onRemoveClicked() }) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Remove scenario",
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 }
             }
             Spacer(modifier = Modifier.height(AppTheme.sizes.medium))
-            Text(
-                text = automationScenario.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
+
+            var shortDescriptionState by remember { mutableStateOf(TextFieldValue(automationScenario.shortDescription)) }
+            EditableTextField(
+                value = shortDescriptionState,
+                onValueChange = { newValue ->
+                    shortDescriptionState = newValue
+                    onShortDescriptionChanged(newValue.text)
+                },
+                onClick = onClick,
+                textStyle = MaterialTheme.typography.bodyMedium,
+                unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                focusedTextColor = MaterialTheme.colorScheme.secondary,
+                focusedBackgroundColor = MaterialTheme.colorScheme.onPrimary,
+                singleLine = false,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                placeholder = "Short description"
             )
         }
     }
@@ -189,7 +239,7 @@ private fun HeaderSection(
         ) {
             // Device selector
             Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)) {
-                GenericDropdown(
+                SimpleDropdown(
                     items = automationRunnerUiState.deviceDataList,
                     selectedItem = automationRunnerUiState.selectedDevice,
                     onItemSelected = { device ->
@@ -197,11 +247,11 @@ private fun HeaderSection(
                     },
                     label = "Device",
                     placeholder = "Select device",
-                    itemText = { it.name },
+                    item = { it.name },
                 )
 
                 if (automationRunnerUiState.installedApps.isNotEmpty()) {
-                    GenericDropdown(
+                    SimpleDropdown(
                         items = automationRunnerUiState.installedApps,
                         selectedItem = automationRunnerUiState.selectedApp,
                         onItemSelected = { app ->
@@ -209,7 +259,7 @@ private fun HeaderSection(
                         },
                         label = "App",
                         placeholder = "Select an app",
-                        itemText = { it.packageName },
+                        item = { it.packageName },
                     )
                 }
             }
@@ -234,16 +284,28 @@ private fun HeaderSection(
         val outputTokenCount = automationRunnerUiState.selectedAutomationScenario?.outputTokensCount ?: 0
         val totalTokenCount = automationRunnerUiState.selectedAutomationScenario?.totalTokensCount ?: 0
 
-        Surface(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = RoundedCornerShape(AppTheme.sizes.medium)
-        ) {
-            Text(
-                text = "Tokens | Input: $inputTokenCount· Output: $outputTokenCount · Total: $totalTokenCount",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = AppTheme.sizes.large, vertical = AppTheme.sizes.medium)
+        Column(verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)) {
+            SectionedDropdown(
+                sections = automationRunnerUiState.availableLLMs,
+                selectedItem = automationRunnerUiState.selectedLLM,
+                onItemSelected = { llm ->
+                    onAction(AutomationRunnerAction.LLMSelected(llm))
+                },
+                label = "LLMs",
+                placeholder = "Select a LLM Model",
+                item = { "${it.providerName} - ${it.modelName}" },
             )
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(AppTheme.sizes.medium)
+            ) {
+                Text(
+                    text = "Tokens | Input: $inputTokenCount· Output: $outputTokenCount · Total: $totalTokenCount",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = AppTheme.sizes.large, vertical = AppTheme.sizes.medium)
+                )
+            }
         }
     }
 }
@@ -259,7 +321,34 @@ private fun ScenarioPanel(
         color = MaterialTheme.colorScheme.primaryContainer,
         shape = RoundedCornerShape(AppTheme.sizes.large)
     ) {
-        ScenarioTextField(automationRunnerUiState = automationRunnerUiState, onAction = onAction)
+        var promptState by remember(automationRunnerUiState.selectedAutomationScenario) {
+            mutableStateOf(
+                TextFieldValue(
+                    automationRunnerUiState.selectedAutomationScenario?.prompt.orEmpty()
+                )
+            )
+        }
+        val enabled = remember(automationRunnerUiState.selectedAutomationScenario) {
+            (automationRunnerUiState.selectedAutomationScenario != null
+                    && automationRunnerUiState.executionState !is ExecutionState.Executing)
+        }
+        ScenarioTextField(
+            value = promptState,
+            onValueChange = { newValue ->
+                promptState = newValue
+                onAction(AutomationRunnerAction.UpdatePrompt(newValue.text))
+            },
+            promptMode = automationRunnerUiState.promptMode,
+            onPromptModeChange = { onAction(AutomationRunnerAction.PromptModeChanged(it)) },
+            enabled = enabled,
+            chipItems = automationRunnerUiState.chipItems.toList(),
+            onChipRemove = { onAction(AutomationRunnerAction.RemoveChip(it)) },
+            onRun = {
+                automationRunnerUiState.selectedAutomationScenario?.let {
+                    onAction(AutomationRunnerAction.RunScenarioClicked(it))
+                }
+            }
+        )
     }
 }
 
@@ -530,20 +619,21 @@ private fun AutomationRunnerScreenPreview() {
 
     val automationScenarios = listOf(
         AutomationScenario(
+            id = UUID.randomUUID(),
             name = "User Login Flow",
-            description = "Automates the user login process including inputting credentials and handling 2FA.",
-            isActive = true,
+            shortDescription = "Automates the user login process including inputting credentials and handling 2FA.",
             prompt = "Automate the user login process including inputting credentials and handling 2FA.",
+            timestamp = Instant.now(),
             inputTokensCount = "150",
             outputTokensCount = "75",
             totalTokensCount = "225",
-
-            ),
+        ),
         AutomationScenario(
+            id = UUID.randomUUID(),
             name = "Data Extraction",
-            description = "Extracts user data from the profile section of the app.",
-            isActive = false,
+            shortDescription = "Extracts user data from the profile section of the app.",
             prompt = "Extract user data from the profile section of the app.",
+            timestamp = Instant.now(),
             inputTokensCount = "120",
             outputTokensCount = "60",
             totalTokensCount = "180",
@@ -576,6 +666,50 @@ private fun AutomationRunnerScreenPreview() {
         installedApps = listOf(
             InstalledApp(packageName = "com.example.myapp"),
             InstalledApp(packageName = "com.example.anotherapp"),
+        ),
+        availableLLMs = listOf(
+            DropdownSectionItem(
+                header = "Remote",
+                listOf(
+                    LLMData(
+                        providerName = "Google", modelName = "Gemini Pro",
+                        modelType = ModelType.Remote,
+                        agentClient = object : AgentClient {
+                            override val modelProvider: String = "Google"
+                            override val modelName: String = "Google Model"
+                            override val modelType: com.cacaosd.droidmind.domain.ModelType =
+                                com.cacaosd.droidmind.domain.ModelType.REMOTE
+
+                            override suspend fun executePrompt(prompt: String) {}
+                        }
+                    ),
+                    LLMData(
+                        providerName = "Meta", modelName = "Llama 3",
+                        modelType = ModelType.Remote,
+                        agentClient = object : AgentClient {
+                            override val modelProvider: String = "Google"
+                            override val modelName: String = "Google Model"
+                            override val modelType: com.cacaosd.droidmind.domain.ModelType =
+                                com.cacaosd.droidmind.domain.ModelType.REMOTE
+
+                            override suspend fun executePrompt(prompt: String) {}
+                        }),
+                    LLMData(
+                        providerName = "Ollama",
+                        modelName = "Llama 2",
+                        modelType = ModelType.Remote,
+                        agentClient = object : AgentClient {
+                            override val modelProvider: String = "Google"
+                            override val modelName: String = "Google Model"
+                            override val modelType: com.cacaosd.droidmind.domain.ModelType =
+                                com.cacaosd.droidmind.domain.ModelType.REMOTE
+
+                            override suspend fun executePrompt(prompt: String) {}
+                        }
+                    ),
+                )
+            )
+
         ),
         selectedDevice = DeviceData(
             name = "Pixel 5",

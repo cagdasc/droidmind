@@ -1,6 +1,6 @@
 package com.cacaosd.droidmind.domain
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 sealed interface AgentEvent {
     val timestamp: Instant

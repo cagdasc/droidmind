@@ -6,7 +6,7 @@ import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import com.cacaosd.droidmind.mind.layout.parser.LayoutParser
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.time.Clock
+import kotlin.time.Clock
 
 interface DeviceController {
 
@@ -17,6 +17,8 @@ interface DeviceController {
     suspend fun launchApp(packageName: String, serial: String?): String
 
     suspend fun getUiDumpFile(packageName: String, serial: String?): File?
+
+    suspend fun getNativeUiDumpFile(packageName: String, serial: String?): File?
 
     suspend fun getOptimisedUiHierarchy(packageName: String, serial: String?): OptimisedHierarchy?
 

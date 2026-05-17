@@ -1,40 +1,55 @@
+@file:OptIn(FlowPreview::class)
+
 package com.cacaosd.droidmind.feature.automation_runner
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cacaosd.droidmind.domain.AgentEvent
+import com.cacaosd.droidmind.domain.local.scenario.ScenarioModel
+import com.cacaosd.droidmind.domain.local.scenario.ScenarioRepository
 import com.cacaosd.droidmind.domain.session.ExecutionMode
 import com.cacaosd.droidmind.domain.session.ScenarioExecutionRequest
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
+import com.cacaosd.droidmind.feature.automation_runner.composable.DropdownSectionItem
 import com.cacaosd.droidmind.feature.automation_runner.usecase.DevicePollUseCase
+import com.cacaosd.droidmind.feature.automation_runner.usecase.GetAvailableLLMsUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.InstalledAppsPollUseCase
-import com.cacaosd.droidmind.mind.device.controller.DeviceController
 import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import java.text.NumberFormat
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 class AutomationRunnerViewModel(
     private val scenarioExecutor: ScenarioExecutor,
+    private val getAvailableLLMsUseCase: GetAvailableLLMsUseCase,
     private val agentEventFlow: MutableSharedFlow<AgentEvent>,
-    private val deviceController: DeviceController,
     private val devicePollUseCase: DevicePollUseCase,
     private val installedAppsPollUseCase: InstalledAppsPollUseCase,
+    private val scenarioRepository: ScenarioRepository,
     private val platformDispatchers: PlatformDispatchers
 ) : ViewModel() {
     private val _automationRunnerUiState = MutableStateFlow(AutomationRunnerUiState())
     val automationRunnerUiState: StateFlow<AutomationRunnerUiState> = _automationRunnerUiState
 
+    private val scenarioUpdateFlow = MutableSharedFlow<ScenarioModel>()
+
     private var installedAppsJob: Job? = null
+    private var agentJob: Job? = null
     private val numberFormat: NumberFormat = NumberFormat.getNumberInstance(Locale.UK)
 
     init {
         pollDevices()
+        loadAvailableLLMs()
+        fetchScenarios()
+        updateScenariosOnChange()
         collectAgentEvents()
     }
 
@@ -57,12 +72,72 @@ class AutomationRunnerViewModel(
 
     private fun pollForInstalledApp(deviceSerial: String) {
         installedAppsJob?.cancel()
-        installedAppsJob = installedAppsPollUseCase.pollInstalledApps(deviceSerial)
-            .onEach { listOfApps ->
-                _automationRunnerUiState.update { state ->
-                    state.copy(installedApps = listOfApps.sorted().map { InstalledApp(packageName = it) })
+        installedAppsJob = installedAppsPollUseCase.pollInstalledApps(deviceSerial).onEach { listOfApps ->
+            _automationRunnerUiState.update { state ->
+                state.copy(installedApps = listOfApps.sorted().filter { it.contains("nutmeg") }
+                    .map { InstalledApp(packageName = it) })
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun loadAvailableLLMs() {
+        viewModelScope.launch {
+            val availableLLMs = getAvailableLLMsUseCase()
+                .groupBy { it.modelType }
+                .map { entry ->
+                    DropdownSectionItem(
+                        header = when (entry.key) {
+                            ModelType.Local -> "Local Models"
+                            ModelType.Remote -> "Remote Models"
+                        },
+                        items = entry.value,
+                    )
                 }
-            }.launchIn(viewModelScope)
+            _automationRunnerUiState.update { state ->
+                state.copy(availableLLMs = availableLLMs)
+            }
+        }
+    }
+
+    private fun fetchScenarios() {
+        scenarioRepository.getScenarios().onEach { result ->
+            result.onSuccess { scenarios ->
+                val automationScenarios = scenarios.map { scenario ->
+                    AutomationScenario(
+                        id = scenario.id,
+                        name = scenario.title,
+                        shortDescription = scenario.shortDescription,
+                        prompt = scenario.prompt,
+                        timestamp = scenario.timestamp,
+                    )
+                }
+                val selectedAutomationScenario = _automationRunnerUiState.value.selectedAutomationScenario
+                val scenarioMap = automationScenarios.associateBy { it.id }
+                val updatedSelectedScenario = scenarioMap[selectedAutomationScenario?.id]
+                _automationRunnerUiState.update { state ->
+                    state.copy(
+                        automationScenarios = automationScenarios,
+                        selectedAutomationScenario = updatedSelectedScenario
+                    )
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun updateScenariosOnChange() {
+        scenarioUpdateFlow.debounce(100.milliseconds)
+            .onEach {
+                scenarioRepository.saveScenario(
+                    ScenarioModel(
+                        id = it.id,
+                        title = it.title,
+                        shortDescription = it.shortDescription,
+                        prompt = it.prompt,
+                        timestamp = it.timestamp,
+                    )
+                )
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun collectAgentEvents() {
@@ -78,8 +153,7 @@ class AutomationRunnerViewModel(
                             )
                         )
                         state.copy(
-                            executionState = ExecutionState.Executing,
-                            logEntryState = newLogEntryState
+                            executionState = ExecutionState.Executing, logEntryState = newLogEntryState
                         )
                     }
                 }
@@ -94,8 +168,7 @@ class AutomationRunnerViewModel(
                             )
                         )
                         state.copy(
-                            executionState = ExecutionState.Idle,
-                            logEntryState = newLogEntryState
+                            executionState = ExecutionState.Idle, logEntryState = newLogEntryState
                         )
                     }
                 }
@@ -110,8 +183,7 @@ class AutomationRunnerViewModel(
                             )
                         )
                         state.copy(
-                            executionState = ExecutionState.Error(event.throwable),
-                            logEntryState = newLogEntryState
+                            executionState = ExecutionState.Error(event.throwable), logEntryState = newLogEntryState
                         )
                     }
                 }
@@ -186,74 +258,122 @@ class AutomationRunnerViewModel(
 
     fun onAction(action: AutomationRunnerAction) {
         when (action) {
-            AutomationRunnerAction.AddScenarioClicked -> {
-                handleAddScenario()
+            AutomationRunnerAction.AddScenarioClicked -> handleAddScenario()
+
+            is AutomationRunnerAction.ScenarioSelected -> {
+                _automationRunnerUiState.update { state ->
+                    state.copy(selectedAutomationScenario = action.scenario)
+                }
             }
 
-            is AutomationRunnerAction.AppSelected -> {
-                handleAppSelection(action)
-            }
+            is AutomationRunnerAction.RemoveScenarioClicked -> handleRemoveScenario(action.scenario)
+            is AutomationRunnerAction.AppSelected -> handleAppSelection(action.installedApp)
+            is AutomationRunnerAction.DeviceSelected -> handleDeviceSelection(action.deviceData)
 
-            is AutomationRunnerAction.DeviceSelected -> {
-                handleDeviceSelection(action)
-            }
-
-            is AutomationRunnerAction.RemoveChip -> {
-                removeChipItem(action)
-            }
+            is AutomationRunnerAction.RemoveChip -> removeChipItem(action.chipItem)
 
             is AutomationRunnerAction.RunScenarioClicked -> {
                 clearLogs()
                 runScenario(action.automationScenario.prompt)
             }
 
-            AutomationRunnerAction.StopScenarioClicked -> TODO()
+            AutomationRunnerAction.StopScenarioClicked -> {
+                // Need to check agent events
+                agentJob?.cancel()
+            }
+
             is AutomationRunnerAction.UpdatePrompt -> {
-                updatePrompt(action)
-            }
-
-            AutomationRunnerAction.ClearLogs -> {
-                clearLogs()
-            }
-
-            is AutomationRunnerAction.PromptModeChanged -> handlePromptModeChange(action)
-        }
-    }
-
-    private fun handlePromptModeChange(action: AutomationRunnerAction.PromptModeChanged) {
-        _automationRunnerUiState.update { it.copy(promptMode = action.promptMode) }
-    }
-
-    private fun updatePrompt(action: AutomationRunnerAction.UpdatePrompt) {
-        _automationRunnerUiState.update { state ->
-            val updatedScenario = state.selectedAutomationScenario?.copy(prompt = action.prompt)
-            val updatedScenarios = state.automationScenarios.map {
-                if (it.name == updatedScenario?.name) {
-                    updatedScenario
-                } else {
-                    it
+                val automationScenario = _automationRunnerUiState.value.selectedAutomationScenario
+                automationScenario?.copy(prompt = action.prompt)?.let { updatedScenario ->
+                    updateScenario(updatedScenario)
                 }
             }
 
-            state.copy(
-                automationScenarios = updatedScenarios,
-                selectedAutomationScenario = updatedScenario
-            )
+            is AutomationRunnerAction.UpdateName -> {
+                val automationScenario = _automationRunnerUiState.value.selectedAutomationScenario
+                automationScenario?.copy(name = action.name)?.let { updatedScenario ->
+                    updateScenario(updatedScenario)
+                }
+            }
+
+            is AutomationRunnerAction.UpdateShortDescription -> {
+                val automationScenario = _automationRunnerUiState.value.selectedAutomationScenario
+                automationScenario?.copy(shortDescription = action.shortDescription)?.let { updatedScenario ->
+                    updateScenario(updatedScenario)
+                }
+            }
+
+            AutomationRunnerAction.ClearLogs -> clearLogs()
+            is AutomationRunnerAction.PromptModeChanged -> handlePromptModeChange(action.promptMode)
+            is AutomationRunnerAction.LLMSelected -> handleLLMSelection(action)
         }
+    }
+
+    private fun handleRemoveScenario(scenario: AutomationScenario) {
+        viewModelScope.launch {
+            scenarioRepository.removeScenario(scenario.id)
+                .onSuccess {
+                    _automationRunnerUiState.update { state ->
+                        val automationScenario = state.automationScenarios.firstOrNull()
+                        state.copy(
+                            selectedAutomationScenario = automationScenario
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun handleLLMSelection(action: AutomationRunnerAction.LLMSelected) {
+        _automationRunnerUiState.update { state ->
+            state.copy(selectedLLM = action.llmData)
+        }
+    }
+
+    private fun handlePromptModeChange(promptMode: PromptMode) {
+        _automationRunnerUiState.update { it.copy(promptMode = promptMode) }
+    }
+
+    private fun updateScenario(updatedScenario: AutomationScenario?) {
+        updatedScenario?.let {
+            viewModelScope.launch {
+                scenarioUpdateFlow.emit(
+                    ScenarioModel(
+                        id = it.id,
+                        title = it.name,
+                        shortDescription = it.shortDescription,
+                        prompt = it.prompt,
+                        timestamp = it.timestamp
+                    )
+                )
+            }
+        }
+
     }
 
     private fun handleAddScenario() {
         val newScenario = AutomationScenario(
+            id = UUID.randomUUID(),
             name = "New Scenario",
-            description = "Describe your scenario here.",
+            shortDescription = "Describe your scenario here.",
             prompt = "Describe your scenario here.",
-            isActive = true
+            timestamp = java.time.Instant.now()
         )
         _automationRunnerUiState.update { state ->
-            val automationScenarios = state.automationScenarios.map { it.copy(isActive = false) }
             state.copy(
-                automationScenarios = listOf(newScenario) + automationScenarios,
+                automationScenarios = listOf(newScenario) + state.automationScenarios,
                 selectedAutomationScenario = newScenario
+            )
+        }
+
+        viewModelScope.launch {
+            scenarioRepository.saveScenario(
+                ScenarioModel(
+                    id = newScenario.id,
+                    title = newScenario.name,
+                    shortDescription = newScenario.shortDescription,
+                    prompt = newScenario.prompt,
+                    timestamp = newScenario.timestamp
+                )
             )
         }
     }
@@ -272,84 +392,70 @@ class AutomationRunnerViewModel(
         val currentState = _automationRunnerUiState.value
         val deviceData = currentState.selectedDevice ?: return
         val installedApp = currentState.selectedApp ?: return
+        val selectedLLM = currentState.selectedLLM ?: return
 
-        val modifiedPrompt = """
-            SCENARIO "YouTube Search and Play First Video"
-            APP "${installedApp.packageName}"
-            $prompt
-        """.trimIndent()
-
-        viewModelScope.launch(platformDispatchers.default) {
+        agentJob?.cancel()
+        agentJob = viewModelScope.launch(platformDispatchers.default) {
             val scenarioExecutionRequest = ScenarioExecutionRequest.builder(
-                deviceData.serial,
-                installedApp.packageName,
-                modifiedPrompt,
-                when (currentState.promptMode) {
+                deviceSerial = deviceData.serial,
+                packageName = installedApp.packageName,
+                scenario = prompt,
+                executionMode = when (currentState.promptMode) {
                     PromptMode.PLAIN_TEXT -> ExecutionMode.TEXT
                     PromptMode.MIND_SCRIPT -> ExecutionMode.SCRIPT
                 }
             )
-//                .expectation("Once you done with the scenario, explain what you have done.")
                 .build()
 
             scenarioExecutor.execute(
+                agentClient = selectedLLM.agentClient,
                 request = scenarioExecutionRequest,
             )
         }
     }
 
-    private fun handleDeviceSelection(action: AutomationRunnerAction.DeviceSelected) {
-        pollForInstalledApp(action.deviceData.serial)
+    private fun handleDeviceSelection(deviceData: DeviceData) {
+        pollForInstalledApp(deviceData.serial)
         _automationRunnerUiState.update { state ->
             state.copy(
-                selectedDevice = action.deviceData,
-                chipItems = setOf(ChipItem.Device(action.deviceData))
+                selectedDevice = deviceData, chipItems = setOf(ChipItem.Device(deviceData))
             )
         }
     }
 
-    private fun handleAppSelection(action: AutomationRunnerAction.AppSelected) {
+    private fun handleAppSelection(installedApp: InstalledApp) {
         _automationRunnerUiState.update { state ->
             val deviceData =
                 state.chipItems.find { it is ChipItem.Device } ?: error("DeviceData should always be present.")
             state.copy(
-                selectedApp = action.installedApp,
-                chipItems = setOf(deviceData, ChipItem.App(action.installedApp))
+                selectedApp = installedApp, chipItems = setOf(deviceData, ChipItem.App(installedApp))
             )
         }
     }
 
-    private fun removeChipItem(action: AutomationRunnerAction.RemoveChip) {
+    private fun removeChipItem(chipItem: ChipItem) {
         _automationRunnerUiState.update { state ->
-            when (action.chipItem) {
+            when (chipItem) {
                 is ChipItem.Device -> {
                     installedAppsJob?.cancel()
                     state.copy(
-                        selectedDevice = null,
-                        selectedApp = null,
-                        chipItems = emptySet(),
-                        installedApps = emptyList()
+                        selectedDevice = null, selectedApp = null, chipItems = emptySet(), installedApps = emptyList()
                     )
                 }
 
                 is ChipItem.App -> {
                     state.copy(
-                        selectedApp = null,
-                        chipItems = state.chipItems.toMutableSet().apply {
-                            remove(action.chipItem)
-                        }
-                    )
+                        selectedApp = null, chipItems = state.chipItems.toMutableSet().apply {
+                            remove(chipItem)
+                        })
                 }
             }
         }
     }
 
-    fun Instant.toLocalTimeString(timeZone: TimeZone = TimeZone.currentSystemDefault()): String {
-        val time = toLocalDateTime(timeZone).time
-        return "%02d:%02d:%02d".format(
-            time.hour,
-            time.minute,
-            time.second
-        )
+    fun Instant.toLocalTimeString(zoneId: ZoneId = ZoneId.systemDefault()): String {
+        val javaInstant = this.toJavaInstant()
+        val formatter = DateTimeFormatter.ofPattern("hh:mm:ss").withZone(zoneId)
+        return formatter.format(javaInstant)
     }
 }

@@ -4,10 +4,11 @@ import com.cacaosd.droidmind.core.logging.Logger
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.Clock
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.time.Clock
+import kotlin.time.toJavaInstant
 
 /**
  * Manages application configuration directories and files
@@ -50,6 +51,7 @@ class AppConfigManager(
     val uiDumpDir: Path = baseConfigDir.resolve("ui_dump")
     val screenshotsDir: Path = baseConfigDir.resolve("screenshots")
     val logsDir: Path = baseConfigDir.resolve("logs")
+    val storageDir: Path = baseConfigDir.resolve("storage")
 
     // Configuration files
     val mainConfigFile: Path = configDir.resolve("config.properties")
@@ -79,7 +81,8 @@ class AppConfigManager(
             configDir,
             uiDumpDir,
             screenshotsDir,
-            logsDir
+            logsDir,
+            storageDir
         )
 
         directories.forEach { dir ->
@@ -105,7 +108,8 @@ class AppConfigManager(
      */
     private fun createDefaultConfigFiles() {
         // Main configuration file
-        val dateTimeText = clock.instant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
+        val dateTimeText =
+            clock.now().toJavaInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
         if (!Files.exists(mainConfigFile)) {
             val defaultConfig = """
                 # $appName Configuration File
@@ -163,6 +167,7 @@ class AppConfigManager(
     fun getUiDumpFile(filename: String): Path = uiDumpDir.resolve(filename)
     fun getScreenshotsFile(filename: String): Path = screenshotsDir.resolve(filename)
     fun getLogFile(filename: String): Path = logsDir.resolve(filename)
+    fun getStorageFile(filename: String): Path = storageDir.resolve(filename)
 
     /**
      * Check if this is the first run of the application
