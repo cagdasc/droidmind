@@ -1,9 +1,10 @@
 package com.cacaosd.droidmind.agent.di
 
 import ai.koog.agents.core.tools.ToolRegistry
+import com.cacaosd.droidmind.agent.acp.DroidMindAgentMain
 import com.cacaosd.droidmind.agent.client.DefaultAgentClientFactory
 import com.cacaosd.droidmind.agent.session.DefaultScenarioExecutor
-import com.cacaosd.droidmind.agent.strategy.reasoningStrategy
+import com.cacaosd.droidmind.agent.strategy.AndroidAgentClient
 import com.cacaosd.droidmind.agent.tools.DeviceControllerTools
 import com.cacaosd.droidmind.agent.tools.TestCaseVerifierTools
 import com.cacaosd.droidmind.agent.tools.UiHierarchyTools
@@ -17,17 +18,22 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import java.util.*
 
-data object AgentMessageFlowQualifier : SelfResolveQualifier()
-
 data object AgentEventFlowQualifier : SelfResolveQualifier()
 
 val agentModule = module {
     single {
+        DroidMindAgentMain(
+            clock = get(),
+            toolRegistry = get(),
+            aiAgentStrategy = get(),
+            properties = get<Properties>(),
+            platformDispatchers = get()
+        )
+    }
+    single {
         DefaultAgentClientFactory(
             toolRegistry = get(),
             aiAgentStrategy = get(),
-            eventMapper = get(),
-            agentMessageFlow = get(AgentMessageFlowQualifier),
             agentEventFlow = get(AgentEventFlowQualifier),
             properties = get<Properties>(),
             clock = get()
@@ -57,11 +63,9 @@ val agentToolsModule = module {
             tools(toolsList = get<DeviceControllerTools>().asTools())
             tools(toolsList = get<UiHierarchyTools>().asTools())
             tools(toolsList = get<UiInteractionTools>().asTools())
-//            tool(ExitTool)
             tools(toolsList = get<TestCaseVerifierTools>().asTools())
         }
     }
-//    single { toolExecutionStrategy("Adb tool execution strategy") }
-    single { reasoningStrategy() }
-//    single { chatAgentStrategy() }
+
+    single { AndroidAgentClient(get(), get(), get()).createStrategy() }
 }

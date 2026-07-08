@@ -7,14 +7,23 @@
             <maxIndex>5</maxIndex>
         </rollingPolicy>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>10MB</maxFileSize>
+            <maxFileSize>5MB</maxFileSize>
         </triggeringPolicy>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}- %msg%n</pattern>
+            <pattern>%d{dd/MMM/yyyy - HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="debug">
+    <logger name="com.cacaosd.droidmind.generic_logger" level="debug" additivity="false">
         <appender-ref ref="ROLLING_FILE"/>
-    </root>
+    </logger>
+
+    <!-- If you need more specific loggers, just add more <logger> blocks:
+         <logger name="com.mycompany.myapp.service.UserService" level="info" additivity="false">
+             <appender-ref ref="ROLLING_FILE"/>
+         </logger>
+    -->
+
+    <!-- Turn the root logger off so nothing else is logged -->
+    <root level="off"/>
 </configuration>

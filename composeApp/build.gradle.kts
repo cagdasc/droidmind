@@ -31,7 +31,7 @@ kotlin {
             implementation(libs.platform.coroutines)
             implementation(libs.platform.coroutines.di)
 
-            implementation(libs.ai.koog)
+            implementation(libs.koog.agents)
 
             implementation(libs.koin.core)
             implementation(libs.koin.core.viewmodel)
@@ -65,3 +65,15 @@ compose.desktop {
         }
     }
 }
+
+
+tasks.register<JavaExec>("runAcp") {
+    description = "Run the DroidMind Agent in ACP mode"
+    group = "acp"
+    mainClass.set("com.cacaosd.droidmind.agent.MainKt")
+    classpath = kotlin.jvm("desktop").compilations["main"].runtimeDependencyFiles +
+            kotlin.jvm("desktop").compilations["main"].output.allOutputs
+    standardInput = System.`in`
+}
+
+

@@ -14,9 +14,12 @@ kotlin {
             implementation(project(":mind:domain"))
             implementation(project(":mind:layout"))
             implementation(project(":mind:verifier"))
-            implementation(libs.ai.koog)
+            implementation(libs.koog.agents)
+            implementation(libs.koog.agents.acp)
+            implementation(libs.koog.agents.client.google)
             implementation(libs.kotlinx.datetime)
             implementation(libs.koin.core)
+            implementation(libs.platform.coroutines)
         }
     }
 }
