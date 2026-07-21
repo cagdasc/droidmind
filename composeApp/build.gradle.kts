@@ -65,15 +65,3 @@ compose.desktop {
         }
     }
 }
-
-
-tasks.register<JavaExec>("runAcp") {
-    description = "Run the DroidMind Agent in ACP mode"
-    group = "acp"
-    mainClass.set("com.cacaosd.droidmind.agent.MainKt")
-    classpath = kotlin.jvm("desktop").compilations["main"].runtimeDependencyFiles +
-            kotlin.jvm("desktop").compilations["main"].output.allOutputs
-    standardInput = System.`in`
-}
-
-

@@ -19,6 +19,13 @@ object Logger {
         }
     }
 
+    fun warning(message: String, payload: Map<String, Any> = emptyMap()) {
+        logger.atWarn {
+            this.message = message
+            this.payload = payload
+        }
+    }
+
     fun error(message: String, throwable: Throwable, payload: Map<String, Any> = emptyMap()) {
         logger.atError {
             this.message = message

@@ -1,6 +1,8 @@
 package com.cacaosd.droidmind.core.config
 
 import com.cacaosd.droidmind.core.logging.Logger
+import java.io.File
+import java.io.FileInputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -20,6 +22,34 @@ class AppConfigManager(
     private val packageName: String,
     private val clock: Clock
 ) {
+
+    val localProperties: Properties
+        get() {
+            val properties = Properties()
+            val localPropertiesFile = findFileUpwards("local.properties")
+                ?: error("local.properties not found in any parent directory")
+
+            try {
+                FileInputStream(localPropertiesFile).use { inputStream ->
+                    properties.load(inputStream)
+                }
+            } catch (e: Exception) {
+                error("Error loading local.properties: ${e.message}")
+            }
+
+            return properties
+        }
+
+    private fun findFileUpwards(name: String, start: File = File("").absoluteFile): File? {
+        var current: File? = start
+        while (current != null) {
+            val candidate = File(current, name)
+            if (candidate.exists()) return candidate
+            current = current.parentFile
+        }
+        return null
+    }
+
     fun initializeApp() {
         // Initialize configuration
         // Check if first run

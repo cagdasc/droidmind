@@ -41,4 +41,6 @@ val coreConfigModule = module {
             clock = get()
         )
     }
+
+    single { get<AppConfigManager>().localProperties }
 }

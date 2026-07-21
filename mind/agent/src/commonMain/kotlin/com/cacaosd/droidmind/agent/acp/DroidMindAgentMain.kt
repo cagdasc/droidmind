@@ -4,6 +4,8 @@ import ai.koog.agents.core.agent.entity.AIAgentGraphStrategy
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.prompt.executor.clients.google.GoogleLLMClient
 import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
+import ai.koog.prompt.executor.ollama.client.OllamaClient
+import ai.koog.prompt.llm.LLMProvider
 import ai.koog.utils.time.KoogClock
 import com.agentclientprotocol.agent.Agent
 import com.agentclientprotocol.protocol.Protocol
@@ -40,8 +42,7 @@ class DroidMindAgentMain(
 
         val apiKey = properties.getProperty("GEMINI_API_KEY")
         val promptExecutor = MultiLLMPromptExecutor(
-//            OllamaClient(),
-            GoogleLLMClient(apiKey)
+            mapOf(LLMProvider.Ollama to OllamaClient(), LLMProvider.Google to GoogleLLMClient(apiKey)),
         )
 
         try {
