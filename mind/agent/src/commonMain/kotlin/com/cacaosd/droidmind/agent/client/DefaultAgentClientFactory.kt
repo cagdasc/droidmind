@@ -10,7 +10,7 @@ import ai.koog.agents.features.tokenizer.feature.MessageTokenizer
 import ai.koog.prompt.tokenizer.SimpleRegexBasedTokenizer
 import com.cacaosd.droidmind.agent.client.system_prompts.SECTIONED_SYSTEM_PROMPT
 import com.cacaosd.droidmind.agent.provider.google.getGoogleAgents
-import com.cacaosd.droidmind.agent.provider.ollama.getOllamaLocalAgents
+import com.cacaosd.droidmind.agent.provider.ollama.getOllamaAgentClientBuilders
 import com.cacaosd.droidmind.core.logging.Logger
 import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.domain.AgentClientFactory
@@ -45,7 +45,7 @@ class DefaultAgentClientFactory(
     }
 
     override suspend fun createLocalAgents(): List<AgentClient> {
-        return getOllamaLocalAgents().map { agents ->
+        return getOllamaAgentClientBuilders().map { agents ->
             agents.withSystemPrompt(SYSTEM_PROMPT)
                 .withMaxIterations(250)
                 .withTemperature(.2)

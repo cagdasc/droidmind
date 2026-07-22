@@ -9,16 +9,19 @@ import ai.koog.prompt.llm.LLModel
 import com.cacaosd.droidmind.agent.client.AgentClientBuilder
 import com.cacaosd.droidmind.domain.ModelType
 
-internal suspend fun getOllamaLocalAgents(): List<AgentClientBuilder> {
+internal suspend fun getOllamaLocalAgents(): List<LLModel> {
     val ollamaClient = OllamaClient()
     return ollamaClient.getModels().filter {
         it.capabilities.any { capability -> capability in listOf(LLMCapability.Tools, LLMCapability.ToolChoice) }
     }
         .map(OllamaModelCard::toLLModel)
+}
+
+internal suspend fun getOllamaAgentClientBuilders(): List<AgentClientBuilder> {
+    return getOllamaLocalAgents()
         .map { lLModel ->
             provideOllamaAgentBuilder(llmModel = lLModel)
         }
-
 }
 
 private fun provideOllamaAgentBuilder(llmModel: LLModel): AgentClientBuilder {

@@ -8,6 +8,7 @@ import ai.koog.agents.core.agent.entity.AIAgentGraphStrategy
 import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.features.acp.AcpAgent
 import ai.koog.agents.features.acp.toKoogMessage
+import ai.koog.agents.features.eventHandler.feature.EventHandler
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.clients.google.GoogleModels
 import ai.koog.prompt.executor.model.PromptExecutor
@@ -20,12 +21,14 @@ import com.agentclientprotocol.model.*
 import com.agentclientprotocol.protocol.Protocol
 import com.cacaosd.droidmind.agent.client.DefaultAgentClientFactory.Companion.SYSTEM_PROMPT
 import com.cacaosd.droidmind.agent.extensions.toAcpModelInfo
+import com.cacaosd.droidmind.agent.provider.ollama.getOllamaLocalAgents
 import com.cacaosd.droidmind.core.logging.Logger
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonElement
@@ -50,7 +53,13 @@ class DroidMindAgentSession(
         GoogleModels.Gemini2_5Flash.toAcpModelInfo() to GoogleModels.Gemini2_5Flash,
         GoogleModels.Gemini2_5Pro.toAcpModelInfo() to GoogleModels.Gemini2_5Pro,
         GoogleModels.Gemini3_Pro_Preview.toAcpModelInfo() to GoogleModels.Gemini3_Pro_Preview,
-    )
+    ).toMutableMap().apply {
+        runBlocking {
+            getOllamaLocalAgents().forEach {
+                put(it.toAcpModelInfo(), it)
+            }
+        }
+    }
 
     private val modelIdMap = availableModelMap.mapKeys { it.key.modelId }
 
@@ -68,6 +77,8 @@ class DroidMindAgentSession(
         selectedLLModel = modelIdMap[modelId]
         return SetSessionModelResponse(_meta)
     }
+
+//    val historyProvider = InMemoryChatHistoryProvider()
 
     override suspend fun prompt(
         content: List<ContentBlock>,
@@ -100,13 +111,25 @@ class DroidMindAgentSession(
                 this.eventsProducer = this@channelFlow
                 this.setDefaultNotifications = true
             }
+            install(EventHandler) {
+
+            }
+
+//            install(ChatMemory) {
+//                chatHistoryProvider = historyProvider
+//            }
         }
 
         agentMutex.withLock {
             agentJob = async {
-                agent.run(content.toKoogMessage(clock).textContent()).also {
-                    Logger.info("Agent message: $it")
-                }
+                val responseText = agent.run(content.toKoogMessage(clock).textContent())
+                send(
+                    Event.SessionUpdateEvent(
+                        SessionUpdate.AgentMessageChunk(
+                            ContentBlock.Text(responseText)
+                        )
+                    )
+                )
             }
             agentJob?.await()
         }

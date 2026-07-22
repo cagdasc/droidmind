@@ -36,10 +36,10 @@ class DroidMindAgentSupport(
                 promptCapabilities = PromptCapabilities(
                     audio = false,
                     image = false,
-                    embeddedContext = true
+                    embeddedContext = false
                 )
             ),
-            authMethods = emptyList() // No authentication required
+            authMethods = emptyList()
         )
     }
 

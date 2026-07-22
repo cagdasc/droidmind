@@ -208,7 +208,7 @@ class AndroidAgentClient(
         edge(
             interactWithApp forwardTo nodeFinish
                     onCondition { storage.get(requiresVerificationKey) != true }
-                    transformed { "Done: ${it.summary}" }
+                    transformed { it.summary }
         )
 
         edge(
@@ -220,7 +220,7 @@ class AndroidAgentClient(
         edge(
             verifyInteraction forwardTo nodeFinish
                     onCondition { it.successful }
-                    transformed { "Done: ${it.input.summary}" }
+                    transformed { it.input.summary }
         )
 
         // Not verified but out of retries -> give up with the last feedback (checked BEFORE the
