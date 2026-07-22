@@ -11,8 +11,8 @@ import com.cacaosd.droidmind.mind.device.android.getAdb
 import com.cacaosd.droidmind.mind.device.info.DeviceInfo
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import com.cacaosd.droidmind.mind.layout.parser.LayoutParser
+import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
 import com.cacaosd.platform.coroutines.extensions.asFlow
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
@@ -22,31 +22,25 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
-actual fun getAndroidDeviceController(
+actual fun provideAndroidDeviceController(
     appConfigManager: AppConfigManager,
     layoutParser: LayoutParser,
+    platformDispatchers: PlatformDispatchers,
     clock: Clock
 ): DeviceController =
     AndroidDeviceController(
         adb = getAdb(),
         layoutParser = layoutParser,
         appConfigManager = appConfigManager,
+        platformDispatchers = platformDispatchers,
         clock = clock
     )
-
-internal suspend fun IDevice.executeShellCommandWithDelay(
-    command: String,
-    receiver: IShellOutputReceiver,
-    delayInMillis: Long = 2000L
-) {
-    this.executeShellCommand(command, receiver)
-    delay(delayInMillis.milliseconds)
-}
 
 class AndroidDeviceController(
     private val adb: AndroidDebugBridge,
     private val layoutParser: LayoutParser,
     private val appConfigManager: AppConfigManager,
+    private val platformDispatchers: PlatformDispatchers,
     private val clock: Clock
 ) : DeviceController {
 
@@ -63,7 +57,7 @@ class AndroidDeviceController(
         }
     }
 
-    override suspend fun listInstalledPackages(serial: String?): List<String> = withContext(Dispatchers.IO) {
+    override suspend fun listInstalledPackages(serial: String?): List<String> = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext emptyList()
         val shellOutputReceiver = CollectingReceiver()
         device.executeShellCommand("pm list packages", shellOutputReceiver)
@@ -93,7 +87,7 @@ class AndroidDeviceController(
         return labelLine?.substringAfter("application-label:")?.trim()
     }
 
-    override suspend fun launchApp(packageName: String, serial: String?): String = withContext(Dispatchers.IO) {
+    override suspend fun launchApp(packageName: String, serial: String?): String = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
         val cmd = "monkey -p $packageName -c android.intent.category.LAUNCHER 1"
         val receiver = CollectingReceiver()
@@ -101,31 +95,32 @@ class AndroidDeviceController(
         "Launched $packageName"
     }
 
-    override suspend fun getUiDumpFile(packageName: String, serial: String?): File? = withContext(Dispatchers.IO) {
-        val device = getDevice(serial) ?: return@withContext null
+    override suspend fun getUiDumpFile(packageName: String, serial: String?): File? =
+        withContext(platformDispatchers.io) {
+            val device = getDevice(serial) ?: return@withContext null
 
-        val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
-        val xmlName = "uidump_${packageName}_$timestamp.xml"
-        val remotePath = "${DeviceConstants.FILE_DOWNLOAD_PATH}/$xmlName"
+            val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
+            val xmlName = "uidump_${packageName}_$timestamp.xml"
+            val remotePath = "${DeviceConstants.FILE_DOWNLOAD_PATH}/$xmlName"
 
-        sendData(
-            device.serialNumber,
-            mapOf(
-                "INTERACTION_EVENT" to "dump_ui_hierarchy",
-                "APP_PACKAGE" to packageName,
-                "FILENAME" to xmlName
+            sendData(
+                device.serialNumber,
+                mapOf(
+                    "INTERACTION_EVENT" to "dump_ui_hierarchy",
+                    "APP_PACKAGE" to packageName,
+                    "FILENAME" to xmlName
+                )
             )
-        )
-        delay(250.milliseconds) // Wait for the dump to be created
+            delay(250.milliseconds) // Wait for the dump to be created
 
-        appConfigManager.getUiDumpFile(filename = xmlName).toFile().apply {
-            device.pullFile(remotePath, absolutePath)
-            device.executeShellCommand("rm $remotePath", CollectingReceiver())
+            appConfigManager.getUiDumpFile(filename = xmlName).toFile().apply {
+                device.pullFile(remotePath, absolutePath)
+                device.executeShellCommand("rm $remotePath", CollectingReceiver())
+            }
         }
-    }
 
     override suspend fun getNativeUiDumpFile(packageName: String, serial: String?): File? =
-        withContext(Dispatchers.IO) {
+        withContext(platformDispatchers.io) {
             val device = getDevice(serial) ?: return@withContext null
 
             val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
@@ -136,11 +131,11 @@ class AndroidDeviceController(
 
             delay(250.milliseconds) // Wait for the dump to be created
 
-        appConfigManager.getUiDumpFile(filename = xmlName).toFile().apply {
-            device.pullFile(remotePath, absolutePath)
-            device.executeShellCommand("rm $remotePath", CollectingReceiver())
+            appConfigManager.getUiDumpFile(filename = xmlName).toFile().apply {
+                device.pullFile(remotePath, absolutePath)
+                device.executeShellCommand("rm $remotePath", CollectingReceiver())
+            }
         }
-    }
 
     override suspend fun getOptimisedUiHierarchy(packageName: String, serial: String?): OptimisedHierarchy {
         val uiDumpFile =
@@ -148,27 +143,27 @@ class AndroidDeviceController(
         return layoutParser.parse(uiDumpFile)
     }
 
-    override suspend fun inputText(text: String, serial: String?): String = withContext(Dispatchers.IO) {
+    override suspend fun inputText(text: String, serial: String?): String = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
         val cmd = "input text '${text.replace(" ", "%s")}'"
         device.executeShellCommandWithDelay(cmd, CollectingReceiver())
         "Input sent: $text"
     }
 
-    override suspend fun tap(x: Int, y: Int, serial: String?): String = withContext(Dispatchers.IO) {
+    override suspend fun tap(x: Int, y: Int, serial: String?): String = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
         device.executeShellCommandWithDelay("input tap $x $y", CollectingReceiver())
         "Tapped at ($x, $y)"
     }
 
-    override suspend fun sendKeyEvent(key: String, serial: String?): String = withContext(Dispatchers.IO) {
+    override suspend fun sendKeyEvent(key: String, serial: String?): String = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
         val keyCode = keyEventMap[key.lowercase()] ?: return@withContext "Unsupported key: $key"
         device.executeShellCommandWithDelay("input keyevent $keyCode", CollectingReceiver())
         "Sent key event: $key"
     }
 
-    override suspend fun deviceSize(serial: String?): String = withContext(Dispatchers.IO) {
+    override suspend fun deviceSize(serial: String?): String = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
         val receiver = CollectingReceiver()
         device.executeShellCommand("wm size", receiver)
@@ -184,7 +179,7 @@ class AndroidDeviceController(
         } ?: DeviceInfo.Dimensions(0, 0)
     }
 
-    override suspend fun screenshot(serial: String?): String = withContext(Dispatchers.IO) {
+    override suspend fun screenshot(serial: String?): String = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
         val screenshotsPath = appConfigManager.screenshotsDir.toAbsolutePath().toString()
         val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
@@ -211,14 +206,14 @@ class AndroidDeviceController(
         endY: Int,
         durationMs: Long,
         serial: String?
-    ): String = withContext(Dispatchers.IO) {
+    ): String = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext "Device not found"
         device.executeShellCommandWithDelay("input swipe $startX $startY $endX $endY $durationMs", CollectingReceiver())
         "Scroll"
     }
 
     // TODO: Functions below need refactoring
-    override suspend fun enableAccessibilityService(serial: String?): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun enableAccessibilityService(serial: String?): Boolean = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext false
         val service = "com.cacaosd.interaction_engine/com.cacaosd.interaction_engine.service.InteractionTrackingService"
         device.executeShellCommand(
@@ -233,7 +228,7 @@ class AndroidDeviceController(
         return@withContext result.isNotEmpty() || result == service
     }
 
-    override suspend fun disableAccessibilityService(serial: String?): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun disableAccessibilityService(serial: String?): Boolean = withContext(platformDispatchers.io) {
         val device = getDevice(serial) ?: return@withContext false
 
         val service = "com.cacaosd.interaction_engine/com.cacaosd.interaction_engine.service.InteractionTrackingService"
@@ -299,5 +294,14 @@ class AndroidDeviceController(
             serial == null -> devices.firstOrNull()
             else -> devices.find { it.serialNumber == serial }
         }
+    }
+
+    private suspend fun IDevice.executeShellCommandWithDelay(
+        command: String,
+        receiver: IShellOutputReceiver,
+        delayInMillis: Long = 2000L
+    ) {
+        this.executeShellCommand(command, receiver)
+        delay(delayInMillis.milliseconds)
     }
 }

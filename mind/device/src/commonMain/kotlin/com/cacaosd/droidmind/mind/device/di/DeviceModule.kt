@@ -3,8 +3,8 @@ package com.cacaosd.droidmind.mind.device.di
 import com.cacaosd.droidmind.core.config.di.SelfResolveQualifier
 import com.cacaosd.droidmind.core.config.di.coreConfigModule
 import com.cacaosd.droidmind.mind.device.controller.DeviceController
-import com.cacaosd.droidmind.mind.device.controller.getAndroidDeviceController
 import com.cacaosd.droidmind.mind.device.controller.getIosDeviceController
+import com.cacaosd.droidmind.mind.device.controller.provideAndroidDeviceController
 import com.cacaosd.droidmind.mind.layout.di.AndroidLayoutParserQualifier
 import com.cacaosd.droidmind.mind.layout.di.IosLayoutParserQualifier
 import org.koin.dsl.bind
@@ -18,9 +18,10 @@ val deviceModule = module {
     includes(coreConfigModule)
 
     single(AndroidDeviceControllerQualifier) {
-        getAndroidDeviceController(
+        provideAndroidDeviceController(
             appConfigManager = get(),
             layoutParser = get(AndroidLayoutParserQualifier),
+            platformDispatchers = get(),
             clock = get()
         )
     } bind DeviceController::class

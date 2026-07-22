@@ -2,9 +2,11 @@ package com.cacaosd.droidmind.adb.device_controller
 
 import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.mind.device.controller.AndroidDeviceController
-import com.cacaosd.droidmind.mind.device.controller.getAndroidDeviceController
+import com.cacaosd.droidmind.mind.device.controller.provideAndroidDeviceController
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import com.cacaosd.droidmind.mind.layout.parser.LayoutParser
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -14,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 class AndroidDeviceControllerTest {
 
     private val fixedClock = kotlin.time.Clock.System
-    private val androidDeviceController = getAndroidDeviceController(
+    private val androidDeviceController = provideAndroidDeviceController(
         AppConfigManager(
             appName = "mcpformobile",
             appVersion = "0.0.1",
@@ -37,6 +39,13 @@ class AndroidDeviceControllerTest {
                     )
                 )
             }
+        },
+        platformDispatchers = object : com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers {
+            override val io = Dispatchers.IO
+            override val default = Dispatchers.Default
+            override val unconfined: CoroutineDispatcher
+                get() = Dispatchers.Unconfined
+            override val main = Dispatchers.Main
         },
         clock = fixedClock
     ) as AndroidDeviceController
