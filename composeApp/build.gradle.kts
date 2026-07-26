@@ -31,7 +31,7 @@ kotlin {
             implementation(libs.platform.coroutines)
             implementation(libs.platform.coroutines.di)
 
-            implementation(libs.ai.koog)
+            implementation(libs.koog.agents)
 
             implementation(libs.koin.core)
             implementation(libs.koin.core.viewmodel)

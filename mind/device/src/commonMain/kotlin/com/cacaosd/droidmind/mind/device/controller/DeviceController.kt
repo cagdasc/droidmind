@@ -4,6 +4,7 @@ import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.mind.device.info.DeviceInfo
 import com.cacaosd.droidmind.mind.layout.model.OptimisedHierarchy
 import com.cacaosd.droidmind.mind.layout.parser.LayoutParser
+import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
 import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.time.Clock
@@ -41,9 +42,10 @@ interface DeviceController {
     suspend fun sendData(serial: String?, values: Map<String, String>)
 }
 
-expect fun getAndroidDeviceController(
+expect fun provideAndroidDeviceController(
     appConfigManager: AppConfigManager,
     layoutParser: LayoutParser,
+    platformDispatchers: PlatformDispatchers,
     clock: Clock
 ): DeviceController
 

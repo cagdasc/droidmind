@@ -33,7 +33,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
 
 
-            implementation(libs.ai.koog)
+            implementation(libs.koog.agents)
         }
     }
 }

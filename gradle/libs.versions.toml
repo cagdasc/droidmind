@@ -36,7 +36,8 @@ logback-version = "1.5.24"
 kotlin-logging-version = "7.0.14"
 
 # Misc / Libraries
-koog-version = "0.7.3"
+koog-version = "1.0.0"
+koog-version-beta = "1.0.0-beta"
 xmlutil-version = "0.91.3"
 
 # Multiplatform
@@ -79,7 +80,9 @@ koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", ver
 koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation", version.ref = "koin-version" }
 
 # AI
-ai-koog = { module = "ai.koog:koog-agents", version.ref = "koog-version" }
+koog-agents = { module = "ai.koog:koog-agents", version.ref = "koog-version" }
+koog-agents-client-google = { module = "ai.koog:prompt-executor-google-client", version.ref = "koog-version-beta" }
+koog-agents-acp = { module = "ai.koog:agents-features-acp", version.ref = "koog-version-beta" }
 
 # Tools
 # Android
@@ -108,6 +111,7 @@ room-sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "sqlit
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-application = { id = "com.android.application", version.ref = "agpVersion" }

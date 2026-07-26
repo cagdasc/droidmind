@@ -1,7 +1,8 @@
 package com.cacaosd.droidmind.agent.provider.google
 
+import ai.koog.prompt.executor.clients.google.GoogleLLMClient
 import ai.koog.prompt.executor.clients.google.GoogleModels
-import ai.koog.prompt.executor.llms.all.simpleGoogleAIExecutor
+import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
 import ai.koog.prompt.llm.LLModel
 import com.cacaosd.droidmind.agent.client.AgentClientBuilder
 import com.cacaosd.droidmind.domain.ModelType
@@ -16,7 +17,7 @@ internal fun getGoogleAgents(apiKey: String): List<AgentClientBuilder> {
 private fun provideGoogleAgentBuilder(apiKey: String, llmModel: LLModel): AgentClientBuilder {
     return AgentClientBuilder.create(
         llmModel = llmModel,
-        simpleGoogleAIExecutor(apiKey),
+        MultiLLMPromptExecutor(GoogleLLMClient(apiKey)),
         modelType = ModelType.REMOTE
     )
 }

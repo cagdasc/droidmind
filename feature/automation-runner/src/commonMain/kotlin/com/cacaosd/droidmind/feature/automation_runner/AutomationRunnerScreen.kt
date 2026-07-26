@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -113,7 +114,7 @@ private fun SidebarPanel(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(AppTheme.sizes.medium)
             ) {
-                items(automationScenarios) { scenario ->
+                items(automationScenarios, key = { it.id }) { scenario ->
                     ScenarioCard(
                         automationScenario = scenario,
                         isSelected = scenario.id == selectedAutomationScenario?.id,
@@ -321,13 +322,25 @@ private fun ScenarioPanel(
         color = MaterialTheme.colorScheme.primaryContainer,
         shape = RoundedCornerShape(AppTheme.sizes.large)
     ) {
-        var promptState by remember(automationRunnerUiState.selectedAutomationScenario) {
+        var promptState by remember(automationRunnerUiState.selectedAutomationScenario?.id) {
+            val initialText = automationRunnerUiState.selectedAutomationScenario?.prompt.orEmpty()
             mutableStateOf(
                 TextFieldValue(
-                    automationRunnerUiState.selectedAutomationScenario?.prompt.orEmpty()
+                    text = initialText,
+                    selection = TextRange(initialText.length)
                 )
             )
         }
+
+        LaunchedEffect(automationRunnerUiState.selectedAutomationScenario?.prompt) {
+            val newPrompt = automationRunnerUiState.selectedAutomationScenario?.prompt.orEmpty()
+            if (newPrompt != promptState.text) {
+                val oldSelection = promptState.selection
+                val clampedPos = minOf(oldSelection.start, newPrompt.length)
+                promptState = promptState.copy(text = newPrompt, selection = TextRange(clampedPos))
+            }
+        }
+
         val enabled = remember(automationRunnerUiState.selectedAutomationScenario) {
             (automationRunnerUiState.selectedAutomationScenario != null
                     && automationRunnerUiState.executionState !is ExecutionState.Executing)

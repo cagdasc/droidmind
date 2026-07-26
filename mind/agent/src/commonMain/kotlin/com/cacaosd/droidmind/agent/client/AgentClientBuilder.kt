@@ -16,6 +16,7 @@ import ai.koog.prompt.llm.LLModel
 import ai.koog.prompt.llm.toModelInfo
 import ai.koog.prompt.params.LLMParams
 import ai.koog.utils.io.use
+import ai.koog.utils.time.KoogClock
 import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.domain.ModelType
 import kotlin.time.ExperimentalTime
@@ -193,7 +194,7 @@ class AgentClientBuilder private constructor(
                 prompt = prompt(
                     "chat",
                     params = LLMParams(temperature = temperature, toolChoice = LLMParams.ToolChoice.Auto),
-                    clock = kotlin.time.Clock.System,
+                    clock = KoogClock.System,
                 ) {
                     system(finalSystemPrompt)
                     additionalPrompts.forEach { it() }

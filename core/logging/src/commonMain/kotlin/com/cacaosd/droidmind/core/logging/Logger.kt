@@ -3,7 +3,7 @@ package com.cacaosd.droidmind.core.logging
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 object Logger {
-    private val logger = KotlinLogging.logger("DroidMind")
+    private val logger = KotlinLogging.logger("com.cacaosd.droidmind.generic_logger")
 
     fun debug(message: String, payload: Map<String, Any> = emptyMap()) {
         logger.atDebug {
@@ -14,6 +14,13 @@ object Logger {
 
     fun info(message: String, payload: Map<String, Any> = emptyMap()) {
         logger.atInfo {
+            this.message = message
+            this.payload = payload
+        }
+    }
+
+    fun warning(message: String, payload: Map<String, Any> = emptyMap()) {
+        logger.atWarn {
             this.message = message
             this.payload = payload
         }

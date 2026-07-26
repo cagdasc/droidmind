@@ -7,14 +7,41 @@
             <maxIndex>5</maxIndex>
         </rollingPolicy>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>10MB</maxFileSize>
+            <maxFileSize>5MB</maxFileSize>
         </triggeringPolicy>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}- %msg%n</pattern>
+            <pattern>%d{dd/MMM/yyyy - HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="debug">
+    <!-- Appender that captures everything in the system (root) logger -->
+    <appender name="SYSTEM_ROLLING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/system.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>logs/system.%i.log.zip</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>5</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>10MB</maxFileSize>
+        </triggeringPolicy>
+        <encoder>
+            <pattern>%d{dd/MMM/yyyy - HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.cacaosd.droidmind.generic_logger" level="debug" additivity="false">
         <appender-ref ref="ROLLING_FILE"/>
+    </logger>
+
+    <!-- If you need more specific loggers, just add more <logger> blocks:
+         <logger name="com.mycompany.myapp.service.UserService" level="info" additivity="false">
+             <appender-ref ref="ROLLING_FILE"/>
+         </logger>
+    -->
+
+    <!-- Root logger: log everything to the system rolling file. Change level as needed (DEBUG/INFO/WARN/ERROR) -->
+    <root level="debug">
+        <appender-ref ref="SYSTEM_ROLLING_FILE"/>
     </root>
 </configuration>
