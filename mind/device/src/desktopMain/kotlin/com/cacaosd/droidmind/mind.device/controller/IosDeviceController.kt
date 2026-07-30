@@ -13,8 +13,10 @@ import org.openqa.selenium.WebDriverException
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 
 actual fun getIosDeviceController(
     json: Json,
@@ -67,7 +69,7 @@ class IosDeviceController(
         val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
         val xmlName = "uidump_${packageName}_$timestamp.xml"
 
-        delay(250) // Wait for the dump to be created
+        delay(250.milliseconds) // Wait for the dump to be created
 
         return appConfigManager.getUiDumpFile(filename = xmlName).toFile().apply {
             writeText(pageSource.orEmpty())
@@ -121,11 +123,13 @@ class IosDeviceController(
         } ?: DeviceInfo.Dimensions(0, 0)
     }
 
-    override suspend fun screenshot(serial: String?): String {
+    override suspend fun screenshot(serial: String?): ScreenshotResult {
         val serial = serial ?: error("Serial cannot be null for iOS devices")
 
         val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
-        iOSDeviceBridge.useDriver(serial) { driver ->
+        val fileName = "droidmind_screenshot_${timestamp}.png"
+
+        val screenshotFile = iOSDeviceBridge.useDriver(serial) { driver ->
             driver.getScreenshotAs(object : OutputType<File> {
                 override fun convertFromBase64Png(base64Png: String): File {
                     return save(OutputType.BYTES.convertFromBase64Png(base64Png))
@@ -137,7 +141,7 @@ class IosDeviceController(
 
                 private fun save(data: ByteArray): File {
                     try {
-                        return appConfigManager.getScreenshotsFile("${timestamp}.png").apply {
+                        return appConfigManager.getScreenshotsFile(fileName).apply {
                             Files.write(this, data)
                         }.toFile()
                     } catch (e: IOException) {
@@ -146,7 +150,9 @@ class IosDeviceController(
                 }
             })
         }
-        return "Screenshot file name is ${timestamp}.png"
+        val base64String = Base64.getEncoder().encodeToString(screenshotFile.readBytes())
+        val dataUrl = "data:image/png;base64,$base64String"
+        return ScreenshotResult(imageUrl = (ImagePayload(url = dataUrl)))
     }
 
     override suspend fun swipe(

@@ -7,7 +7,7 @@
             <maxIndex>5</maxIndex>
         </rollingPolicy>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>5MB</maxFileSize>
+            <maxFileSize>150KB</maxFileSize>
         </triggeringPolicy>
         <encoder>
             <pattern>%d{dd/MMM/yyyy - HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
@@ -23,7 +23,7 @@
             <maxIndex>5</maxIndex>
         </rollingPolicy>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>10MB</maxFileSize>
+            <maxFileSize>2MB</maxFileSize>
         </triggeringPolicy>
         <encoder>
             <pattern>%d{dd/MMM/yyyy - HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>

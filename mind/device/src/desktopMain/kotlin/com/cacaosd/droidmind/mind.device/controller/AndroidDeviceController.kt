@@ -18,7 +18,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.readBytes
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -179,24 +181,26 @@ class AndroidDeviceController(
         } ?: DeviceInfo.Dimensions(0, 0)
     }
 
-    override suspend fun screenshot(serial: String?): String = withContext(platformDispatchers.io) {
-        val device = getDevice(serial) ?: return@withContext "Device not found"
+    override suspend fun screenshot(serial: String?): ScreenshotResult? = withContext(platformDispatchers.io) {
+        val device = getDevice(serial) ?: return@withContext null
         val screenshotsPath = appConfigManager.screenshotsDir.toAbsolutePath().toString()
         val timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.now().toEpochMilliseconds())
+        val fileName = "droidmind_screenshot_${timestamp}.png"
 
         device.executeShellCommand(
-            "screencap -p ${DeviceConstants.FILE_PICTURES_PATH}/${timestamp}.png",
+            "screencap -p ${DeviceConstants.FILE_PICTURES_PATH}/$fileName",
             CollectingReceiver()
         )
-        delay(200)
-        device.pullFile("${DeviceConstants.FILE_PICTURES_PATH}/${timestamp}.png", "$screenshotsPath/${timestamp}.png")
-        delay(200)
-        device.executeShellCommand(
-            "rm ${DeviceConstants.FILE_PICTURES_PATH}/${timestamp}.png",
-            CollectingReceiver()
-        )
+        delay(200.milliseconds)
+        device.pullFile("${DeviceConstants.FILE_PICTURES_PATH}/$fileName", "$screenshotsPath/$fileName")
+        delay(200.milliseconds)
+        device.executeShellCommand("rm ${DeviceConstants.FILE_PICTURES_PATH}/$fileName", CollectingReceiver())
 
-        "Screenshot file name is ${timestamp}.png"
+        val screenshotFile = appConfigManager.getScreenshotsFile(filename = fileName)
+
+        val base64String = Base64.getEncoder().encodeToString(screenshotFile.readBytes())
+        val dataUrl = "data:image/png;base64,$base64String"
+        ScreenshotResult(imageUrl = (ImagePayload(url = dataUrl)))
     }
 
     override suspend fun swipe(
@@ -220,7 +224,7 @@ class AndroidDeviceController(
             "settings put secure enabled_accessibility_services $service",
             CollectingOutputReceiver()
         )
-        delay(100)
+        delay(100.milliseconds)
         val receiver = CollectingOutputReceiver()
         device.executeShellCommand("settings get secure enabled_accessibility_services", receiver)
 
@@ -247,7 +251,7 @@ class AndroidDeviceController(
             """.trimIndent()
 
         device.executeShellCommand(cmd, CollectingOutputReceiver())
-        delay(100)
+        delay(100.milliseconds)
         val receiver = CollectingOutputReceiver()
         device.executeShellCommand("settings get secure enabled_accessibility_services", receiver)
 

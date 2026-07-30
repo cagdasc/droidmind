@@ -31,7 +31,7 @@ interface DeviceController {
 
     suspend fun deviceSize(serial: String?): String
 
-    suspend fun screenshot(serial: String?): String
+    suspend fun screenshot(serial: String?): ScreenshotResult?
 
     suspend fun swipe(startX: Int, startY: Int, endX: Int, endY: Int, durationMs: Long = 300, serial: String?): String
 

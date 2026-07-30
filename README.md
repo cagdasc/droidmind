@@ -27,13 +27,20 @@ The project aims to provide an intelligent agent system that can:
 
 ## Example Usage
 
-    Find search button in toolbar and click it. Type "First video in YouTube" and send done event. Once you get search
-    results get list in screen and click first element. After that tell me what did you do and what you see in the screen.
+    Open Youtube app and type 'First video in Youtube' in search box and tap enter after that verify 'Me at the zoo' text is visible.
+    If yes click it and open video. Check screen and tell me the channel name 'jawed'.
+
+Demo: a recorded run of the ACP agent interacting with [YouTube is available](demo/acp_youtube_demo.webm).
 
 > [!CAUTION]
 > This agent can execute ADB commands automatically in response to prompts, without confirmation. Use with care,
 > especially for commands that modify app state or perform sensitive operations. Recommended for use in development
 > environments or emulators.
+
+Agent strategies
+----------------
+- SteppedDeviceInteractionStrategy — preferred for structured multi-step plans. See [the strategy diagram](STEPPED_DEVICE_INTERACTION_STRATEGY.md), flow notes, storage keys, and edge behaviors.
+- OneShotDeviceInteractionStrategy — single-pass request -> interact -> optional verify flow; documentation will be added.
 
 License
 -------

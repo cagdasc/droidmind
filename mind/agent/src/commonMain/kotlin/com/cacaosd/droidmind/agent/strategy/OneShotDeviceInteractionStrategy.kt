@@ -1,68 +1,18 @@
 package com.cacaosd.droidmind.agent.strategy
 
+import ai.koog.agents.core.agent.entity.ToolSelectionStrategy
 import ai.koog.agents.core.agent.entity.createStorageKey
+import ai.koog.agents.core.annotation.InternalAgentsApi
 import ai.koog.agents.core.dsl.builder.node
 import ai.koog.agents.core.dsl.builder.strategy
-import ai.koog.agents.core.tools.annotations.LLMDescription
 import ai.koog.agents.ext.agent.CriticResult
 import ai.koog.agents.ext.agent.subgraphWithTask
 import ai.koog.agents.ext.agent.subgraphWithVerification
-import com.cacaosd.droidmind.agent.tools.DeviceControllerTools
+import ai.koog.serialization.typeToken
+import com.cacaosd.droidmind.agent.tools.DeviceInfoTools
+import com.cacaosd.droidmind.agent.tools.DeviceManagerTools
 import com.cacaosd.droidmind.agent.tools.UiHierarchyTools
 import com.cacaosd.droidmind.agent.tools.UiInteractionTools
-import kotlinx.serialization.Serializable
-
-/**
- * Structured result of Layer 0 (request classification / scope gate).
- */
-@Serializable
-@LLMDescription("Classification of whether a user request is in scope for a mobile app testing/device-control agent")
-data class PromptClassification(
-    @property:LLMDescription(
-        "True only if the request is about testing, inspecting, or controlling a mobile app, " +
-                "emulator, or device - e.g. launching/installing an app, tapping/typing/scrolling on screen, " +
-                "reading UI state, verifying on-screen behavior, or managing an emulator/device"
-    )
-    val inScope: Boolean,
-    @property:LLMDescription("The original request, copied verbatim, to hand off to later phases when in scope")
-    val request: String,
-    @property:LLMDescription(
-        "True only if the request explicitly or implicitly asks to verify, check, confirm, or test the " +
-                "outcome (e.g. contains wording like 'verify', 'check that', 'make sure', 'confirm', 'test that'). " +
-                "False for a plain action request where no confirmation of the result was asked for."
-    )
-    val requiresVerification: Boolean = false,
-    @property:LLMDescription("Short, user-facing explanation when inScope = false. Empty when inScope = true")
-    val reason: String = ""
-)
-
-/**
- * Structured result of Layer 1 (device identification).
- * Carrying `request` forward means later layers don't depend on the LLM "remembering"
- * the original ask across subgraph boundaries.
- */
-@Serializable
-@LLMDescription("Result of locating the target device/emulator and preparing the app under test")
-data class ProvisioningResult(
-    @property:LLMDescription("True only if the device is ready and the app is in the foreground")
-    val ready: Boolean,
-    @property:LLMDescription("The original test request, copied verbatim so later phases keep context")
-    val request: String,
-    @property:LLMDescription("Reason provisioning failed. Empty when ready = true")
-    val reason: String = ""
-)
-
-/**
- * Structured result of Layer 2 (UI interaction).
- */
-@Serializable
-@LLMDescription("Summary of the UI actions that were attempted on the current screen")
-data class InteractionResult(
-    @property:LLMDescription("The original test request, copied verbatim")
-    val request: String,
-    @property:LLMDescription("Precisely what was done on screen (taps, text entry, scrolls), detailed enough to verify")
-    val summary: String
-)
 
 /**
  * AndroidAgentClient implements the Agent Client Protocol (ACP) for Android devices.
@@ -79,8 +29,9 @@ data class InteractionResult(
  * Verification failures loop back into interaction with feedback, bounded by maxVerificationAttempts
  * so a stubborn UI state can't cause an infinite loop.
  */
-class AndroidAgentClient(
-    private val deviceControllerTools: DeviceControllerTools,
+class OneShotDeviceInteractionStrategy(
+    private val deviceManagerTools: DeviceManagerTools,
+    private val deviceInfoTools: DeviceInfoTools,
     private val uiHierarchyTools: UiHierarchyTools,
     private val uiInteractionTools: UiInteractionTools
 ) {
@@ -89,6 +40,7 @@ class AndroidAgentClient(
     private val verificationAttemptsKey = createStorageKey<Int>("verification-attempts")
     private val requiresVerificationKey = createStorageKey<Boolean>("requires-verification")
 
+    @OptIn(InternalAgentsApi::class)
     fun createStrategy() = strategy<String, String>("device_interaction") {
 
         // ---- Layer 0: Request classification / scope gate ----------------------------------
@@ -122,12 +74,12 @@ class AndroidAgentClient(
         // ---- Layer 1: Device identification ----------------------------------------------
         val identifyEmulatorAndApp by subgraphWithTask<String, ProvisioningResult>(
             name = "identify_device_and_app",
-            tools = deviceControllerTools.asTools()
+            tools = deviceManagerTools.asTools()
         ) { request ->
             """
             Phase: Device identification.
-            Identify the target emulator/device, install the app if needed, and launch it so it is
-            in the foreground and ready for UI testing.
+            Identify the target emulator/device and launch the app so it is
+            in the foreground and ready for interaction.
             If this cannot be achieved, report `ready = false` with a clear `reason` instead of guessing.
             Always copy the original request verbatim into the `request` field.
             
@@ -139,11 +91,13 @@ class AndroidAgentClient(
         val interactWithApp by subgraphWithTask<ProvisioningResult, InteractionResult>(
             name = "interact_with_app",
             tools = uiHierarchyTools.asTools() + uiInteractionTools.asTools()
+            // Disabled until figure out how to pass image over tools
+            // + deviceInfoTools.asTools()
         ) { provisioning ->
             """
             Phase: UI interaction.
             Execute the requested actions on the current screen. Read the UI hierarchy first to find
-            the right elements, then perform the interaction.
+            the right elements/text, then perform the interaction.
             Describe precisely what you did so it can be checked afterwards.
             Always copy the original request verbatim into the `request` field.
 
@@ -153,7 +107,9 @@ class AndroidAgentClient(
 
         // ---- Layer 3: UI verification (built-in critic subgraph) ---------------------------
         val verifyInteraction by subgraphWithVerification<InteractionResult>(
-            tools = uiHierarchyTools.asTools()
+            name = "verify_interaction",
+            typeToken<InteractionResult>(),
+            toolSelectionStrategy = ToolSelectionStrategy.Tools(uiHierarchyTools.asTools().map { it.descriptor }),
         ) { interaction ->
             """
             Phase: UI verification.

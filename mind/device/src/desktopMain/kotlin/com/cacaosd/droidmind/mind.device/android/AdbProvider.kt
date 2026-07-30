@@ -5,6 +5,7 @@ import com.cacaosd.droidmind.core.logging.Logger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.milliseconds
 
 fun getAdb(): AndroidDebugBridge = runBlocking {
     AndroidDebugBridge.init(false)
@@ -25,6 +26,6 @@ private suspend fun createAdb(androidHome: String): AndroidDebugBridge = Android
     // Wait for initial device list
     repeat(10) {
         if (adb.hasInitialDeviceList()) return@also
-        delay(500)
+        delay(500.milliseconds)
     }
 }
