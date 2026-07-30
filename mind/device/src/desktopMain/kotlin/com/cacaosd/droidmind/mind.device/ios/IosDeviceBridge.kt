@@ -10,6 +10,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import java.net.URI
+import kotlin.time.Duration.Companion.milliseconds
 
 class IosDeviceBridge(private val json: Json) {
 
@@ -93,9 +94,9 @@ class IosDeviceBridge(private val json: Json) {
         }
     }
 
-    suspend fun waitForAppToBeInForeground(serial: String, packageName: String) = withTimeoutOrNull(5000) {
+    suspend fun waitForAppToBeInForeground(serial: String, packageName: String) = withTimeoutOrNull(5000.milliseconds) {
         while (isActive) {
-            delay(250)
+            delay(250.milliseconds)
             val appState = useDriver(serial) { driver ->
                 driver.queryAppState(packageName)
             }

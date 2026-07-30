@@ -9,7 +9,7 @@ import com.cacaosd.droidmind.feature.automation_runner.usecase.DevicePollUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.GetAvailableLLMsUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.InstalledAppsPollUseCase
 import com.cacaosd.droidmind.feature.automation_runner.usecase.PollUseCase
-import com.cacaosd.droidmind.mind.device.di.AndroidDeviceControllerQualifier
+import com.cacaosd.droidmind.mind.device.di.AndroidDeviceManagerQualifier
 import kotlinx.coroutines.flow.MutableSharedFlow
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -19,14 +19,14 @@ val featureModule = module {
     single {
         DevicePollUseCase(
             pollUseCase = get(),
-            deviceController = get(AndroidDeviceControllerQualifier),
+            deviceController = get(AndroidDeviceManagerQualifier),
             platformDispatchers = get()
         )
     }
     single {
         InstalledAppsPollUseCase(
             pollUseCase = get(),
-            deviceController = get(AndroidDeviceControllerQualifier),
+            deviceController = get(AndroidDeviceManagerQualifier),
             platformDispatchers = get()
         )
     }

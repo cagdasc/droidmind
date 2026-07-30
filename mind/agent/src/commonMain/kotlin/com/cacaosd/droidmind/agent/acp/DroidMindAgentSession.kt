@@ -6,6 +6,7 @@ import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.config.AIAgentConfig
 import ai.koog.agents.core.agent.entity.AIAgentGraphStrategy
 import ai.koog.agents.core.tools.ToolRegistry
+import ai.koog.agents.ext.agent.CriticResult
 import ai.koog.agents.features.acp.AcpAgent
 import ai.koog.agents.features.acp.toKoogMessage
 import ai.koog.agents.features.eventHandler.feature.EventHandler
@@ -112,7 +113,27 @@ class DroidMindAgentSession(
                 this.setDefaultNotifications = true
             }
             install(EventHandler) {
-
+                onSubgraphExecutionCompleted {
+                    val output = if (it.output is CriticResult<*>) {
+                        """
+                            Success: ${(it.output as CriticResult<*>).successful}
+                            Feedback: ${(it.output as CriticResult<*>).feedback}
+                            Input: ${(it.output as CriticResult<*>).input}
+                        """.trimIndent()
+                    } else {
+                        it.output.toString()
+                    }
+                    Logger.info(
+                        """
+                                    ${it.subgraph.name} is completed
+                                    ------
+                                    Input ==> ${it.input}
+                                    ------
+                                    Output ==> $output
+                                    ------
+                                """.trimIndent()
+                    )
+                }
             }
 
 //            install(ChatMemory) {

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalUuidApi::class)
-
 package com.cacaosd.droidmind.agent.client
 
 import ai.koog.agents.core.agent.GraphAIAgent
@@ -18,7 +16,6 @@ import com.cacaosd.droidmind.domain.AgentEvent
 import kotlinx.coroutines.flow.MutableSharedFlow
 import java.util.*
 import kotlin.time.Clock
-import kotlin.uuid.ExperimentalUuidApi
 
 class DefaultAgentClientFactory(
     private val toolRegistry: ToolRegistry,

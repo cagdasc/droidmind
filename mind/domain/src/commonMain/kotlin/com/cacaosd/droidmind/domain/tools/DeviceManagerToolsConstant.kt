@@ -1,8 +1,8 @@
 package com.cacaosd.droidmind.domain.tools
 
-object DeviceControllerToolsConstant {
+object DeviceManagerToolsConstant {
     const val TOOLSET_DESCRIPTION =
-        "A set of tools to interact with Android devices. These tools allow you to retrieve connected devices, list installed packages, launch apps, get device screen size, and capture screenshots."
+        "A set of tools that helps to find connected devices, list available applications and launch an application."
 
     const val LIST_CONNECTED_DEVICES_TOOL = "list_connected_devices"
     const val LIST_CONNECTED_DEVICES_TOOL_DESC =
@@ -15,12 +15,4 @@ object DeviceControllerToolsConstant {
     const val LAUNCH_APP_TOOL = "launch_app_by_package"
     const val LAUNCH_APP_TOOL_DESC =
         "Launches an Android app by its package name on the specified device."
-
-    const val DEVICE_SIZE_TOOL = "device_size"
-    const val DEVICE_SIZE_TOOL_DESC =
-        "Retrieves the screen size (width x height) of the specified Android device."
-
-    const val SCREENSHOT_TOOL = "device_screenshot"
-    const val SCREENSHOT_TOOL_DESC =
-        "It captures screenshot of current screen on Android device and save it to local development machine."
 }
