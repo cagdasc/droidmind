@@ -29,7 +29,6 @@ class SteppedDeviceInteractionStrategy(
 ) {
 
     private val maxVerificationAttempts = 3
-    private val requiresVerificationKey = createStorageKey<Boolean>("requires-verification")
     private val verificationAttemptsKey = createStorageKey<Int>("verification-attempts")
 
     // Storage keys for execution plan control (variant keys declared in model files)
@@ -62,17 +61,11 @@ class SteppedDeviceInteractionStrategy(
             """.trimIndent()
         }
 
-        val applyClassification by node<PromptClassification, String> { classification ->
-            // keep a simple flag for backwards compatibility flows; execution plan will drive behavior
-            storage.set(requiresVerificationKey, classification.requiresVerification)
-            classification.request
-        }
-
         // ---- Prompt rewrite: produce an ordered plan (ask LLM to return JSON for either v1 or v2)
-        val rewritePrompt by subgraphWithTask<String, String>(
+        val rewritePrompt by subgraphWithTask<PromptClassification, String>(
             name = "rewrite_prompt",
             tools = emptyList()
-        ) { request ->
+        ) { promptClassification ->
             """
             Phase: Prompt rewriting.
             Rewrite the original request into a machine-readable ordered execution plan. 
@@ -93,7 +86,7 @@ class SteppedDeviceInteractionStrategy(
             
             Return only the JSON payload.
 
-            Original request: $request
+            Original request: ${promptClassification.request}
             """.trimIndent()
         }
 
@@ -286,11 +279,9 @@ class SteppedDeviceInteractionStrategy(
         )
 
         edge(
-            edgeIntermediate = classifyRequest forwardTo applyClassification
+            edgeIntermediate = classifyRequest forwardTo rewritePrompt
                     onCondition { it.inScope }
         )
-
-        edge(edgeIntermediate = applyClassification forwardTo rewritePrompt)
         edge(edgeIntermediate = rewritePrompt forwardTo persistPlan)
         edge(edgeIntermediate = persistPlan forwardTo identifyEmulatorAndApp)
 
@@ -345,9 +336,9 @@ class SteppedDeviceInteractionStrategy(
         edge(edgeIntermediate = buildInteractionForVerification forwardTo verifyInteraction)
 
         edge(
-            edgeIntermediate = verifyInteraction forwardTo nodeFinish
+            edgeIntermediate = verifyInteraction forwardTo summarizeResult
                     onCondition { it.successful && !hasMoreSteps(storage) }
-                    transformed { it.input.summary }
+                    transformed { it.input }
         )
 
         edge(
