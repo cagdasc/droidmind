@@ -36,8 +36,8 @@ logback-version = "1.5.24"
 kotlin-logging-version = "7.0.14"
 
 # Misc / Libraries
-koog-version = "1.0.0"
-koog-version-beta = "1.0.0-beta"
+koog-version = "1.1.1"
+koog-version-beta = "1.1.1-beta"
 xmlutil-version = "0.91.3"
 
 # Multiplatform

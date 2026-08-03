@@ -53,7 +53,7 @@ class DroidMindAgentSession(
         GoogleModels.Gemini2_5FlashLite.toAcpModelInfo() to GoogleModels.Gemini2_5FlashLite,
         GoogleModels.Gemini2_5Flash.toAcpModelInfo() to GoogleModels.Gemini2_5Flash,
         GoogleModels.Gemini2_5Pro.toAcpModelInfo() to GoogleModels.Gemini2_5Pro,
-        GoogleModels.Gemini3_Pro_Preview.toAcpModelInfo() to GoogleModels.Gemini3_Pro_Preview,
+        GoogleModels.Gemini3_5Flash.toAcpModelInfo() to GoogleModels.Gemini3_5Flash,
     ).toMutableMap().apply {
         runBlocking {
             getOllamaLocalAgents().forEach {
