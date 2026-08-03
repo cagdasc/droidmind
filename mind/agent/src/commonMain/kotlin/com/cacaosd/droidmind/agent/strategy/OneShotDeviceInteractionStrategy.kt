@@ -1,14 +1,11 @@
 package com.cacaosd.droidmind.agent.strategy
 
-import ai.koog.agents.core.agent.entity.ToolSelectionStrategy
 import ai.koog.agents.core.agent.entity.createStorageKey
 import ai.koog.agents.core.annotation.InternalAgentsApi
-import ai.koog.agents.core.dsl.builder.node
 import ai.koog.agents.core.dsl.builder.strategy
-import ai.koog.agents.ext.agent.CriticResult
-import ai.koog.agents.ext.agent.subgraphWithTask
-import ai.koog.agents.ext.agent.subgraphWithVerification
-import ai.koog.serialization.typeToken
+import com.cacaosd.droidmind.agent.strategy.persistence.requiresVerificationKey
+import com.cacaosd.droidmind.agent.strategy.persistence.storeClassificationInfoTask
+import com.cacaosd.droidmind.agent.strategy.task.*
 import com.cacaosd.droidmind.agent.tools.DeviceInfoTools
 import com.cacaosd.droidmind.agent.tools.DeviceManagerTools
 import com.cacaosd.droidmind.agent.tools.UiHierarchyTools
@@ -38,99 +35,31 @@ class OneShotDeviceInteractionStrategy(
 
     private val maxVerificationAttempts = 3
     private val verificationAttemptsKey = createStorageKey<Int>("verification-attempts")
-    private val requiresVerificationKey = createStorageKey<Boolean>("requires-verification")
 
     @OptIn(InternalAgentsApi::class)
     fun createStrategy() = strategy<String, String>("device_interaction") {
 
         // ---- Layer 0: Request classification / scope gate ----------------------------------
         // No tools: this is a pure judgment call, not a task, so it shouldn't touch the device.
-        val classifyRequest by subgraphWithTask<String, PromptClassification>(
-            name = "classify_request",
-            tools = emptyList()
-        ) { request ->
-            """
-            Phase: Request classification.
-            Decide whether the request below is about testing, inspecting, or controlling a mobile
-            (Android) application or device: launching/installing an app, tapping/typing/scrolling on
-            screen, reading UI state, verifying on-screen behavior, or managing an emulator/device.
-            If it's unrelated (general chit-chat, unrelated coding help, unrelated questions, etc.),
-            set inScope = false and give a brief, user-facing reason.
-            Do not attempt to fulfill the request yourself here - only classify it.
-            Always copy the original request verbatim into the `request` field.
-
-            Request: $request
-            """.trimIndent()
-        }
+        val classifyRequest by classifyRequestTask()
 
         // Records whether this run should go through layer 3 at all. This is decided in code from
         // the classifier's own field rather than re-asked-for later, so it can't drift as the LLM
         // hands structured results between subgraphs.
-        val applyClassification by node<PromptClassification, String> { classification ->
-            storage.set(requiresVerificationKey, classification.requiresVerification)
-            classification.request
-        }
+        val applyClassification by storeClassificationInfoTask()
 
         // ---- Layer 1: Device identification ----------------------------------------------
-        val identifyEmulatorAndApp by subgraphWithTask<String, ProvisioningResult>(
-            name = "identify_device_and_app",
-            tools = deviceManagerTools.asTools()
-        ) { request ->
-            """
-            Phase: Device identification.
-            Identify the target emulator/device and launch the app so it is
-            in the foreground and ready for interaction.
-            If this cannot be achieved, report `ready = false` with a clear `reason` instead of guessing.
-            Always copy the original request verbatim into the `request` field.
-            
-            Request: $request
-            """.trimIndent()
-        }
+        val identifyEmulatorAndApp by deviceAndAppIdentificationTask(deviceManagerTools.asTools())
 
         // ---- Layer 2: UI interaction -------------------------------------------------------
-        val interactWithApp by subgraphWithTask<ProvisioningResult, InteractionResult>(
-            name = "interact_with_app",
-            tools = uiHierarchyTools.asTools() + uiInteractionTools.asTools()
-            // Disabled until figure out how to pass image over tools
-            // + deviceInfoTools.asTools()
-        ) { provisioning ->
-            """
-            Phase: UI interaction.
-            Execute the requested actions on the current screen. Read the UI hierarchy first to find
-            the right elements/text, then perform the interaction.
-            Describe precisely what you did so it can be checked afterwards.
-            Always copy the original request verbatim into the `request` field.
-
-            Request: ${provisioning.request}
-            """.trimIndent()
-        }
+        val interactWithApp by appInteractionTask(uiHierarchyTools.asTools() + uiInteractionTools.asTools())
 
         // ---- Layer 3: UI verification (built-in critic subgraph) ---------------------------
-        val verifyInteraction by subgraphWithVerification<InteractionResult>(
-            name = "verify_interaction",
-            typeToken<InteractionResult>(),
-            toolSelectionStrategy = ToolSelectionStrategy.Tools(uiHierarchyTools.asTools().map { it.descriptor }),
-        ) { interaction ->
-            """
-            Phase: UI verification.
-            Read the current UI hierarchy and confirm whether the request below was actually satisfied
-            on screen. Be strict: only approve if the visible UI state matches the request.
-
-            Original request: ${interaction.request}
-            Actions performed: ${interaction.summary}
-            """.trimIndent()
-        }
+        val verifyInteraction by interactionVerificationTask(uiHierarchyTools.asTools())
 
         // Small helper node: bumps the retry counter and turns critic feedback into a fresh
         // ProvisioningResult so it can feed back into interactWithApp's input type.
-        val prepareRetry by node<CriticResult<InteractionResult>, ProvisioningResult> { critic ->
-            val attempts = (storage.get(verificationAttemptsKey) ?: 0) + 1
-            storage.set(verificationAttemptsKey, attempts)
-            ProvisioningResult(
-                ready = true,
-                request = "${critic.input.request}\n\nPrevious attempt was insufficient: ${critic.feedback}"
-            )
-        }
+        val prepareRetry by prepareForRetryTask()
 
         edge(nodeStart forwardTo classifyRequest)
 
