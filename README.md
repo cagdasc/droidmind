@@ -40,7 +40,7 @@ Demo: a recorded run of the ACP agent interacting with [YouTube is available](de
 Agent strategies
 ----------------
 - SteppedDeviceInteractionStrategy — preferred for structured multi-step plans. See [the strategy diagram](STEPPED_DEVICE_INTERACTION_STRATEGY.md), flow notes, storage keys, and edge behaviors.
-- OneShotDeviceInteractionStrategy — single-pass request -> interact -> optional verify flow; documentation will be added.
+- OneShotDeviceInteractionStrategy — single-pass request -> interact -> optional verify flow. See [the strategy diagram](ONE_SHOT_DEVICE_INTERACTION_STRATEGY.md), flow notes, storage keys, and edge behaviors.
 
 License
 -------
