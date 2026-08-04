@@ -1,6 +1,6 @@
 package com.cacaosd.droidmind.di
 
-import com.cacaosd.droidmind.agent.di.AgentEventFlowQualifier
+import com.cacaosd.droidmind.agent.client.di.AgentEventFlowQualifier
 import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.local.scenario.ScenarioRepository
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor

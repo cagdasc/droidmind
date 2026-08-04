@@ -6,6 +6,7 @@ import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.agents.features.eventHandler.feature.EventHandler
 import ai.koog.agents.features.tokenizer.feature.MessageTokenizer
 import ai.koog.prompt.tokenizer.SimpleRegexBasedTokenizer
+import ai.koog.utils.time.KoogClock
 import com.cacaosd.droidmind.agent.client.system_prompts.SECTIONED_SYSTEM_PROMPT
 import com.cacaosd.droidmind.agent.provider.google.getGoogleAgents
 import com.cacaosd.droidmind.agent.provider.ollama.getOllamaAgentClientBuilders
@@ -22,13 +23,14 @@ class DefaultAgentClientFactory(
     private val aiAgentStrategy: AIAgentGraphStrategy<String, String>,
     private val agentEventFlow: MutableSharedFlow<AgentEvent>,
     private val properties: Properties,
-    private val clock: Clock
+    private val clock: Clock,
+    private val koogClock: KoogClock
 ) :
     AgentClientFactory {
 
     override fun createRemoteModel(): List<AgentClient> {
         val apiKey = properties.getProperty("GEMINI_API_KEY")
-        return getGoogleAgents(apiKey = apiKey).map { agents ->
+        return getGoogleAgents(apiKey = apiKey, clock = koogClock).map { agents ->
             agents.withSystemPrompt(SYSTEM_PROMPT)
                 .withMaxIterations(250)
                 .withTemperature(.2)
@@ -42,7 +44,7 @@ class DefaultAgentClientFactory(
     }
 
     override suspend fun createLocalAgents(): List<AgentClient> {
-        return getOllamaAgentClientBuilders().map { agents ->
+        return getOllamaAgentClientBuilders(clock = koogClock).map { agents ->
             agents.withSystemPrompt(SYSTEM_PROMPT)
                 .withMaxIterations(250)
                 .withTemperature(.2)

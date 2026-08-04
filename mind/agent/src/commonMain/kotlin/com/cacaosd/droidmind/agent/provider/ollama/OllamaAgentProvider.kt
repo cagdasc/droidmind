@@ -6,6 +6,7 @@ import ai.koog.prompt.executor.ollama.client.OllamaModelCard
 import ai.koog.prompt.executor.ollama.client.toLLModel
 import ai.koog.prompt.llm.LLMCapability
 import ai.koog.prompt.llm.LLModel
+import ai.koog.utils.time.KoogClock
 import com.cacaosd.droidmind.agent.client.AgentClientBuilder
 import com.cacaosd.droidmind.domain.ModelType
 
@@ -17,17 +18,18 @@ internal suspend fun getOllamaLocalAgents(): List<LLModel> {
         .map(OllamaModelCard::toLLModel)
 }
 
-internal suspend fun getOllamaAgentClientBuilders(): List<AgentClientBuilder> {
+internal suspend fun getOllamaAgentClientBuilders(clock: KoogClock): List<AgentClientBuilder> {
     return getOllamaLocalAgents()
         .map { lLModel ->
-            provideOllamaAgentBuilder(llmModel = lLModel)
+            provideOllamaAgentBuilder(llmModel = lLModel, clock = clock)
         }
 }
 
-private fun provideOllamaAgentBuilder(llmModel: LLModel): AgentClientBuilder {
+private fun provideOllamaAgentBuilder(llmModel: LLModel, clock: KoogClock): AgentClientBuilder {
     return AgentClientBuilder.create(
         llmModel = llmModel,
-        MultiLLMPromptExecutor(OllamaClient()),
-        modelType = ModelType.LOCAL
+        executor = MultiLLMPromptExecutor(OllamaClient()),
+        modelType = ModelType.LOCAL,
+        clock = clock
     )
 }

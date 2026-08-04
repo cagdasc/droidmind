@@ -7,6 +7,7 @@ import com.cacaosd.droidmind.mind.device.controller.getIosDeviceController
 import com.cacaosd.droidmind.mind.device.controller.provideAndroidDeviceController
 import com.cacaosd.droidmind.mind.layout.di.AndroidLayoutParserQualifier
 import com.cacaosd.droidmind.mind.layout.di.IosLayoutParserQualifier
+import com.cacaosd.droidmind.mind.layout.di.layoutModule
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -15,7 +16,7 @@ object AndroidDeviceManagerQualifier : SelfResolveQualifier()
 object IosDeviceControllerQualifier : SelfResolveQualifier()
 
 val deviceModule = module {
-    includes(coreConfigModule)
+    includes(coreConfigModule, layoutModule)
 
     single(AndroidDeviceManagerQualifier) {
         provideAndroidDeviceController(

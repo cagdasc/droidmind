@@ -1,48 +1,77 @@
 # DroidMind
 
-## What is DroidMind?
+A playful AI for Android automation — turn plain language into device actions.
 
-**DroidMind** is an AI-powered automation framework that controls Android devices and emulators through natural language
-commands. It uses large language models (LLMs) to interpret user intents and execute corresponding actions on connected Android devices.
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/5a6e36a6-ee3d-403d-9a59-99ff70239f83" width="80%" controls></video>
+  <p><em>Watch a short demo of the ACP agent interpreting natural language and controlling YouTube on a device.</em></p>
+</div>
 
-## Project Goal
+## Why DroidMind?
 
-The project aims to provide an intelligent agent system that can:
-- Understand natural language commands to perform Android device operations
-- Automatically control UI elements through AI analysis of device layouts
-- Execute complex multi-step automation tasks
-- Support both local and cloud-based language models (e.g., Google Gemini)
-- Provide a flexible, extensible framework for device automation
+Give commands like "search YouTube for X and open the first result" and DroidMind interprets, executes via ADB, verifies
+results, and reports back. Great for demos, test automation, and exploring LLM-driven device control.
 
-## Key Features
+## Highlights
 
-- **AI-Powered Device Control**: Uses LLMs (Gemini or local models) to execute device actions
-- **ADB Integration**: Deep integration with Android Debug Bridge for device communication
-- **Tool-Based Agent System**: Extensible framework for adding new device capabilities
-- **Layout Analysis**: Analyzes device UI hierarchies for intelligent interaction
-- **Verification Engine**: Confirms action outcomes through device state verification
-- **Agent Client Protocol (ACP)**: Supports ACP integration for extensible agent capabilities
-- **IntelliJ Integration**: Can be integrated into IntelliJ IDEA for IDE-native automation workflows
-- **Kotlin Multiplatform**: Built in Kotlin for desktop environments
+- Natural-language → device actions (LLM-driven)
+- ADB-based device & emulator control
+- UI layout analysis for element-finding and verification
+- Modular, Koin-based DI and Kotlin Multiplatform codebase
+- ACP (Agent Client Protocol) support for extensibility
 
-## Example Usage
+## Quick start
 
-    Open Youtube app and type 'First video in Youtube' in search box and tap enter after that verify 'Me at the zoo' text is visible.
-    If yes click it and open video. Check screen and tell me the channel name 'jawed'.
+Build the project:
 
-Demo: a recorded run of the ACP agent interacting with [YouTube is available](demo/acp_youtube_demo.webm).
+```bash
+./gradlew build
+```
 
-> [!CAUTION]
-> This agent can execute ADB commands automatically in response to prompts, without confirmation. Use with care,
-> especially for commands that modify app state or perform sensitive operations. Recommended for use in development
-> environments or emulators.
+Run the desktop app (Compose UI):
 
-Agent strategies
-----------------
-- SteppedDeviceInteractionStrategy — preferred for structured multi-step plans. See [the strategy diagram](STEPPED_DEVICE_INTERACTION_STRATEGY.md), flow notes, storage keys, and edge behaviors.
-- OneShotDeviceInteractionStrategy — single-pass request -> interact -> optional verify flow. See [the strategy diagram](ONE_SHOT_DEVICE_INTERACTION_STRATEGY.md), flow notes, storage keys, and edge behaviors.
+```bash
+ANDROID_HOME={ANDROID_SDK_PATH} ./gradlew composeApp:run
+```
 
-License
--------
+Build the ACP executable and configure your `acp.json:
 
-This project is licensed under the Apache License 2.0 – see the [LICENSE](LICENSE) file for details.
+```bash
+./gradlew :acp-starter:clean :acp-starter:installDist
+```
+
+```json
+{
+  "agent_servers": {
+    "DroidMind Agent": {
+      "command": "{PROJECT_BUILD_DIRECTORY}/install/acp-starter/bin/acp-starter",
+      "args": [],
+      "env": {
+        "ANDROID_HOME": "{ANDROID_SDK_PATH}",
+        "GEMINI_API_KEY": "API_KEY"
+      }
+    }
+  }
+}
+```
+
+## Example scenario
+
+"***Open Youtube app and type 'First video in Youtube' in search box and tap enter after that verify 'Me at the zoo'
+text is visible. If yes click it and open video. Check screen and tell me the channel name 'jawed'.***" — the agent will
+plan
+steps, interact with the device UI, and verify results.
+
+## Contributing
+
+Contributions welcome! Open issues or PRs. Follow module structure and DI conventions in the repo. Add tests for new
+tools or device actions.
+
+## Security & Safety
+
+This project can run ADB commands automatically. Use only on trusted devices or emulators. Review and test strategies
+before running on production devices.
+
+## License
+
+Apache 2.0 — see [LICENSE](LICENSE).

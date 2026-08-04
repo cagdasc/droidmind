@@ -34,7 +34,8 @@ import kotlin.time.ExperimentalTime
 class AgentClientBuilder private constructor(
     private val llmModel: LLModel,
     private val executor: PromptExecutor,
-    override val modelType: ModelType
+    override val modelType: ModelType,
+    val clock: KoogClock,
 ) : AgentClient {
     private var systemPrompt: String? = null
     private var additionalPrompts: MutableList<PromptBuilder.() -> Unit> = mutableListOf()
@@ -55,8 +56,13 @@ class AgentClientBuilder private constructor(
          * @param executor The prompt executor for handling LLM interactions.
          * @return A new builder instance.
          */
-        fun create(llmModel: LLModel, executor: PromptExecutor, modelType: ModelType): AgentClientBuilder {
-            return AgentClientBuilder(llmModel, executor, modelType)
+        fun create(
+            llmModel: LLModel,
+            executor: PromptExecutor,
+            modelType: ModelType,
+            clock: KoogClock
+        ): AgentClientBuilder {
+            return AgentClientBuilder(llmModel, executor, modelType, clock)
         }
     }
 
@@ -194,7 +200,7 @@ class AgentClientBuilder private constructor(
                 prompt = prompt(
                     "chat",
                     params = LLMParams(temperature = temperature, toolChoice = LLMParams.ToolChoice.Auto),
-                    clock = KoogClock.System,
+                    clock = clock,
                 ) {
                     system(finalSystemPrompt)
                     additionalPrompts.forEach { it() }

@@ -9,10 +9,7 @@ import com.agentclientprotocol.agent.AgentSession
 import com.agentclientprotocol.agent.AgentSupport
 import com.agentclientprotocol.client.ClientInfo
 import com.agentclientprotocol.common.SessionCreationParameters
-import com.agentclientprotocol.model.AgentCapabilities
-import com.agentclientprotocol.model.LATEST_PROTOCOL_VERSION
-import com.agentclientprotocol.model.PromptCapabilities
-import com.agentclientprotocol.model.SessionId
+import com.agentclientprotocol.model.*
 import com.agentclientprotocol.protocol.Protocol
 import com.cacaosd.droidmind.core.logging.Logger
 import kotlin.uuid.ExperimentalUuidApi
@@ -38,6 +35,11 @@ class DroidMindAgentSupport(
                     image = false,
                     embeddedContext = false
                 )
+            ),
+            implementation = Implementation(
+                name = "DroidMind Agent",
+                title = "DroidMind Agent",
+                version = "0.0.1",
             ),
             authMethods = emptyList()
         )

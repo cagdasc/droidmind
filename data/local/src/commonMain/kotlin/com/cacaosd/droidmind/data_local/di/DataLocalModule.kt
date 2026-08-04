@@ -1,5 +1,6 @@
 package com.cacaosd.droidmind.data_local.di
 
+import com.cacaosd.droidmind.data_local.appdatabase.databaseModule
 import com.cacaosd.droidmind.data_local.implementation.scenario.ScenarioRepositoryImpl
 import com.cacaosd.droidmind.data_local.mapper.ScenarioMapper
 import com.cacaosd.droidmind.domain.local.scenario.ScenarioRepository
@@ -7,6 +8,8 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val dataLocalModule = module {
+    includes(databaseModule)
+
     single { ScenarioMapper() }
 
     single {
