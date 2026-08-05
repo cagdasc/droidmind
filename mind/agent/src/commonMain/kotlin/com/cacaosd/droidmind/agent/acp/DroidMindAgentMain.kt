@@ -19,13 +19,11 @@ import kotlinx.io.asSource
 import kotlinx.io.buffered
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
-import java.util.*
 
 class DroidMindAgentMain(
     private val clock: KoogClock,
     private val toolRegistry: ToolRegistry,
     private val aiAgentStrategy: AIAgentGraphStrategy<String, String>,
-    private val properties: Properties,
     private val platformDispatchers: PlatformDispatchers
 ) {
 
@@ -40,7 +38,7 @@ class DroidMindAgentMain(
             name = "droidmind_agent_transport"
         )
 
-        val apiKey = properties.getProperty("GEMINI_API_KEY")
+        val apiKey = System.getenv("GEMINI_API_KEY")
         val promptExecutor = MultiLLMPromptExecutor(
             mapOf(LLMProvider.Ollama to OllamaClient(), LLMProvider.Google to GoogleLLMClient(apiKey)),
         )

@@ -74,8 +74,8 @@ class AutomationRunnerViewModel(
         installedAppsJob?.cancel()
         installedAppsJob = installedAppsPollUseCase.pollInstalledApps(deviceSerial).onEach { listOfApps ->
             _automationRunnerUiState.update { state ->
-                state.copy(installedApps = listOfApps.sorted().filter { it.contains("youtube") }
-                    .map { InstalledApp(packageName = it) })
+                state.copy(
+                    installedApps = listOfApps.sorted().map { InstalledApp(packageName = it) })
             }
         }.launchIn(viewModelScope)
     }

@@ -6,7 +6,7 @@ import com.cacaosd.droidmind.data_local.appdatabase.scenario.ScenarioDao
 import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
 import org.koin.dsl.module
 
-val databaseModule = module {
+internal val databaseModule = module {
     includes(coreConfigModule)
     single { provideAppDatabase(appConfigManager = get(), platformDispatchers = get()) }
     single { provideScenarioDao(appDatabase = get()) }

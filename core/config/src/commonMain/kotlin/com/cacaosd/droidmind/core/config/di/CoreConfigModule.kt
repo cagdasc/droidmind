@@ -7,6 +7,7 @@ import org.koin.core.qualifier.Qualifier
 import org.koin.core.qualifier.QualifierValue
 import org.koin.core.qualifier.TypeQualifier
 import org.koin.dsl.module
+import kotlin.time.Clock
 
 abstract class SelfResolveQualifier : Qualifier {
     override val value: QualifierValue
@@ -43,4 +44,6 @@ val coreConfigModule = module {
     }
 
     single { get<AppConfigManager>().localProperties }
+
+    single<Clock> { Clock.System }
 }
