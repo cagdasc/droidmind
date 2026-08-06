@@ -10,30 +10,41 @@ import ai.koog.utils.time.KoogClock
 import com.cacaosd.droidmind.agent.client.system_prompts.SECTIONED_SYSTEM_PROMPT
 import com.cacaosd.droidmind.agent.provider.google.getGoogleAgents
 import com.cacaosd.droidmind.agent.provider.ollama.getOllamaAgentClientBuilders
+import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.core.logging.Logger
 import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.domain.AgentClientFactory
 import com.cacaosd.droidmind.domain.AgentEvent
 import kotlinx.coroutines.flow.MutableSharedFlow
-import java.util.*
 import kotlin.time.Clock
 
 class DefaultAgentClientFactory(
+    private val appConfigManager: AppConfigManager,
     private val toolRegistry: ToolRegistry,
     private val aiAgentStrategy: AIAgentGraphStrategy<String, String>,
     private val agentEventFlow: MutableSharedFlow<AgentEvent>,
-    private val properties: Properties,
     private val clock: Clock,
     private val koogClock: KoogClock
 ) :
     AgentClientFactory {
 
     override fun createRemoteModel(): List<AgentClient> {
-        val apiKey = properties.getProperty("GEMINI_API_KEY")
+        val googleConfig = appConfigManager.getAgentConfig("google")
+        if (googleConfig == null) {
+            Logger.warning("Google agent configuration not found. Configure 'google' provider in config.json to use remote models.")
+            return emptyList()
+        }
+
+        val apiKey = appConfigManager.getApiKey("gemini")
+        if (apiKey.isNullOrEmpty()) {
+            Logger.warning("Gemini API key not configured. Set api.keys.gemini in config.json")
+            return emptyList()
+        }
+
         return getGoogleAgents(apiKey = apiKey, clock = koogClock).map { agents ->
             agents.withSystemPrompt(SYSTEM_PROMPT)
-                .withMaxIterations(250)
-                .withTemperature(.2)
+                .withMaxIterations(googleConfig.maxIterations)
+                .withTemperature(googleConfig.temperature)
                 .withTools(toolRegistry)
                 .withStrategy(aiAgentStrategy)
                 .withFeatures {
@@ -44,10 +55,21 @@ class DefaultAgentClientFactory(
     }
 
     override suspend fun createLocalAgents(): List<AgentClient> {
+        val ollamaConfig = appConfigManager.getAgentConfig("ollama")
+        if (ollamaConfig == null) {
+            Logger.warning("Ollama agent configuration not found. Configure 'ollama' provider in config.json to use local models.")
+            return emptyList()
+        }
+
+        if (ollamaConfig.baseUrl.isEmpty()) {
+            Logger.warning("Ollama baseUrl not configured. Set agent.providers.ollama.baseUrl in config.json")
+            return emptyList()
+        }
+
         return getOllamaAgentClientBuilders(clock = koogClock).map { agents ->
             agents.withSystemPrompt(SYSTEM_PROMPT)
-                .withMaxIterations(250)
-                .withTemperature(.2)
+                .withMaxIterations(ollamaConfig.maxIterations)
+                .withTemperature(ollamaConfig.temperature)
                 .withTools(toolRegistry)
                 .withStrategy(aiAgentStrategy)
                 .withFeatures {

@@ -7,7 +7,9 @@ interface AgentClient {
 
     val modelType: ModelType
 
-    suspend fun executePrompt(prompt: String)
+    suspend fun executePrompt(prompt: String): Unit?
+
+    suspend fun stop() {}
 }
 
 enum class ModelType {

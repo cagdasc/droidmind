@@ -16,4 +16,8 @@ sealed interface AutomationRunnerAction {
     data class ScenarioSelected(val scenario: AutomationScenario) : AutomationRunnerAction
     data class RemoveScenarioClicked(val scenario: AutomationScenario) : AutomationRunnerAction
 
+    // Settings dialog actions
+    data object SettingsDialogClicked : AutomationRunnerAction
+    data object SettingsDialogDismissed : AutomationRunnerAction
+    data class SaveSettings(val androidHome: String, val geminiApiKey: String) : AutomationRunnerAction
 }

@@ -13,7 +13,6 @@ import com.cacaosd.droidmind.domain.session.ScenarioExecutor
 import com.cacaosd.droidmind.mind.device.di.AndroidDeviceManagerQualifier
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import java.util.*
 
 data object AgentEventFlowQualifier : SelfResolveQualifier()
 
@@ -24,10 +23,10 @@ val agentClientModule = module {
 
     single {
         DefaultAgentClientFactory(
+            appConfigManager = get(),
             toolRegistry = get(),
             aiAgentStrategy = get(OneshotInteractionVerificationQualifier),
             agentEventFlow = get(AgentEventFlowQualifier),
-            properties = get<Properties>(),
             clock = get(),
             koogClock = get()
         )

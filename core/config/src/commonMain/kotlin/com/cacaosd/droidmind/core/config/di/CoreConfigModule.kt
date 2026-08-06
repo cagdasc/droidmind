@@ -18,9 +18,9 @@ val json = Json {
     prettyPrint = true          // formatted output
     isLenient = false            // allow non-strict JSON
     ignoreUnknownKeys = true    // ignore fields not in your class
-    encodeDefaults = false       // include default values in output
-    explicitNulls = false
-    coerceInputValues = true
+    encodeDefaults = true       // include default values in output
+    explicitNulls = true
+    coerceInputValues = false
 }
 
 val xml = XML {
@@ -39,11 +39,9 @@ val coreConfigModule = module {
             appName = "droidmind",
             appVersion = "0.0.1",
             packageName = "com.cacaosd.droidmind",
-            clock = get()
+            json = json,
         )
     }
-
-    single { get<AppConfigManager>().localProperties }
 
     single<Clock> { Clock.System }
 }

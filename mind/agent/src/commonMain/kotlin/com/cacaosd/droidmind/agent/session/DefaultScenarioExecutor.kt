@@ -31,4 +31,8 @@ class DefaultScenarioExecutor(private val deviceController: DeviceController) :
 //        delay(2000.milliseconds)
 //        deviceController.disableAccessibilityService(serial = deviceSerial)
     }
+
+    override suspend fun cancel(agentClient: AgentClient) {
+        agentClient.stop()
+    }
 }

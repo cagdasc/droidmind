@@ -1,61 +1,36 @@
 package com.cacaosd.droidmind.core.config
 
+import com.cacaosd.droidmind.core.config.models.AgentProviderConfig
+import com.cacaosd.droidmind.core.config.models.AppConfig
 import com.cacaosd.droidmind.core.logging.Logger
-import java.io.File
-import java.io.FileInputStream
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.*
-import kotlin.time.Clock
-import kotlin.time.toJavaInstant
 
 /**
- * Manages application configuration directories and files
+ * Manages application configuration in JSON format
  * Following XDG Base Directory Specification and platform conventions
  */
 class AppConfigManager(
     private val appName: String,
     private val appVersion: String = "1.0",
     private val packageName: String,
-    private val clock: Clock
+    private val json: Json
 ) {
+    private val _settingsUpdatedFlow =
+        MutableSharedFlow<AppConfig>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val settingsUpdatedFlow: SharedFlow<AppConfig> = _settingsUpdatedFlow.asSharedFlow()
 
-    val localProperties: Properties
-        get() {
-            val properties = Properties()
-            val localPropertiesFile = findFileUpwards("local.properties")
-                ?: error("local.properties not found in any parent directory")
-
-            try {
-                FileInputStream(localPropertiesFile).use { inputStream ->
-                    properties.load(inputStream)
-                }
-            } catch (e: Exception) {
-                error("Error loading local.properties: ${e.message}")
-            }
-
-            return properties
-        }
-
-    private fun findFileUpwards(name: String, start: File = File("").absoluteFile): File? {
-        var current: File? = start
-        while (current != null) {
-            val candidate = File(current, name)
-            if (candidate.exists()) return candidate
-            current = current.parentFile
-        }
-        return null
-    }
+    private var loadedConfig: AppConfig? = null
 
     fun initializeApp() {
-        // Initialize configuration
-        // Check if first run
         if (initialize() && isFirstRun()) {
             Logger.debug("This is your first time running the app.")
-            // Perform first-run setup
             markFirstRunCompleted()
         }
     }
@@ -80,12 +55,10 @@ class AppConfigManager(
     val configDir: Path = baseConfigDir
     val uiDumpDir: Path = baseConfigDir.resolve("ui_dump")
     val screenshotsDir: Path = baseConfigDir.resolve("screenshots")
-    val logsDir: Path = baseConfigDir.resolve("logs")
     val storageDir: Path = baseConfigDir.resolve("storage")
 
     // Configuration files
-    val mainConfigFile: Path = configDir.resolve("config.properties")
-    val userPrefsFile: Path = configDir.resolve("user-preferences.json")
+    val mainConfigFile: Path = configDir.resolve("config.json")
 
     /**
      * Initialize all application directories and create default configuration files
@@ -94,6 +67,7 @@ class AppConfigManager(
         return try {
             createDirectoryStructure()
             createDefaultConfigFiles()
+            loadConfig() // Load config on initialization
             Logger.debug("Application config manager initialized successfully")
             Logger.debug("Config directory: ${configDir.toAbsolutePath()}")
             true
@@ -111,7 +85,6 @@ class AppConfigManager(
             configDir,
             uiDumpDir,
             screenshotsDir,
-            logsDir,
             storageDir
         )
 
@@ -122,7 +95,6 @@ class AppConfigManager(
                     Logger.info("Created directory: ${dir.toAbsolutePath()}")
                 }
 
-                // Ensure directory is writable
                 if (!Files.isWritable(dir)) {
                     throw SecurityException("Directory is not writable: $dir")
                 }
@@ -134,59 +106,77 @@ class AppConfigManager(
     }
 
     /**
-     * Create default configuration files if they don't exist
+     * Create default JSON configuration file if it doesn't exist
      */
     private fun createDefaultConfigFiles() {
-        // Main configuration file
-        val dateTimeText =
-            clock.now().toJavaInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
         if (!Files.exists(mainConfigFile)) {
-            val defaultConfig = """
-                # $appName Configuration File
-                # Version: $appVersion
-                # Created: $dateTimeText
-                
-                app.name=${appName}
-                app.version=${appVersion}
-                app.first_run=true
-                
-                # Logging configuration
-                log.level=INFO
-                log.max_files=10
-                log.max_size_mb=10
-                
-                # Performance settings
-                cache.max_size_mb=100
-                cache.cleanup_interval_hours=24
-                
-                # UI settings
-                ui.theme=system
-                ui.language=en
-            """.trimIndent()
-
-            Files.writeString(mainConfigFile, defaultConfig)
-            Logger.info("Created default config file: ${mainConfigFile.fileName}")
-        }
-
-        // User preferences file
-        if (!Files.exists(userPrefsFile)) {
-            val defaultPrefs = """
+            val envVarExample = $$"${ENV_VAR_NAME}"
+            val jsonContent = $$"""
                 {
-                  "window": {
-                    "width": 800,
-                    "height": 600,
-                    "maximized": false,
-                    "x": -1,
-                    "y": -1
+                  "_comment": "DroidMind Configuration File",
+                  "app": {
+                    "name": "droidmind",
+                    "version": "0.0.1"
                   },
-                  "recent_files": [],
-                  "shortcuts": {},
-                  "last_opened_directory": "${System.getProperty("user.home")}"
+                  "api": {
+                    "keys": {
+                      "_comment": "Add your API keys here (supports env vars: \"${ENV_VAR_NAME}\")",
+                      "gemini": "",
+                      "ollama": ""
+                    }
+                  },
+                  "agent": {
+                    "_comment": "Agent provider configurations (optional - add only what you use).",
+                    "providers": {
+                      "google": {
+                        "maxIterations": 250,
+                        "temperature": 0.2
+                      },
+                      "ollama": {
+                        "maxIterations": 100,
+                        "temperature": 0.7,
+                        "baseUrl": "http://localhost:11434"
+                      }
+                    }
+                  }
                 }
             """.trimIndent()
 
-            Files.writeString(userPrefsFile, defaultPrefs)
-            Logger.info("Created default preferences file: ${userPrefsFile.fileName}")
+            Files.writeString(mainConfigFile, jsonContent)
+            Logger.info("Created default config file: ${mainConfigFile.fileName}")
+        }
+    }
+
+    /**
+     * Load configuration from JSON file with environment variable substitution
+     */
+    private fun loadConfig(): AppConfig {
+        return try {
+            if (!Files.exists(mainConfigFile)) {
+                Logger.info("Config file not found at ${mainConfigFile.toAbsolutePath()}, using defaults")
+                loadedConfig = AppConfig()
+                return loadedConfig!!
+            }
+
+            val jsonContent = Files.readString(mainConfigFile)
+            val processedContent = substituteEnvironmentVariables(jsonContent)
+            val config = json.decodeFromString<AppConfig>(processedContent)
+            loadedConfig = config
+            config
+        } catch (e: Exception) {
+            Logger.error("Failed to load config file: ${e.message}", throwable = e)
+            AppConfig().also { loadedConfig = it }
+        }
+    }
+
+    /**
+     * Substitute environment variables in the format ${'$'}{ENV_VAR_NAME}
+     */
+    private fun substituteEnvironmentVariables(content: String): String {
+        val pattern = Regex("""\$\{([A-Za-z_][A-Za-z0-9_]*)\}""")
+        return content.replace(pattern) { matchResult ->
+            val envVarName = matchResult.groupValues[1]
+            System.getenv(envVarName) ?: matchResult.value
         }
     }
 
@@ -196,47 +186,21 @@ class AppConfigManager(
     fun getConfigFile(filename: String): Path = configDir.resolve(filename)
     fun getUiDumpFile(filename: String): Path = uiDumpDir.resolve(filename)
     fun getScreenshotsFile(filename: String): Path = screenshotsDir.resolve(filename)
-    fun getLogFile(filename: String): Path = logsDir.resolve(filename)
     fun getStorageFile(filename: String): Path = storageDir.resolve(filename)
 
     /**
      * Check if this is the first run of the application
      */
     private fun isFirstRun(): Boolean {
-        return try {
-            if (!Files.exists(mainConfigFile)) return true
-
-            val properties = Properties()
-            Files.newInputStream(mainConfigFile).use { input ->
-                properties.load(input)
-            }
-
-            properties.getProperty("app.first_run", "true").toBoolean()
-        } catch (e: Exception) {
-            true
-        }
+        return !Files.exists(mainConfigFile)
     }
 
     /**
-     * Mark first run as completed
+     * Mark first run as completed by updating the config file
      */
     private fun markFirstRunCompleted() {
-        try {
-            val properties = Properties()
-            if (Files.exists(mainConfigFile)) {
-                Files.newInputStream(mainConfigFile).use { input ->
-                    properties.load(input)
-                }
-            }
-
-            properties.setProperty("app.first_run", "false")
-
-            Files.newOutputStream(mainConfigFile).use { output ->
-                properties.store(output, "Updated first run status")
-            }
-        } catch (e: Exception) {
-            Logger.error("Failed to update first run status: ${e.message}", e)
-        }
+        // First run marker is implicit - if config file exists, it's not first run
+        Logger.info("First run setup completed")
     }
 
     /**
@@ -250,6 +214,113 @@ class AppConfigManager(
             configDir = configDir.toAbsolutePath().toString(),
             isFirstRun = isFirstRun()
         )
+    }
+
+    /**
+     * Save application settings (API keys)
+     */
+    fun saveApiKey(provider: String, apiKey: String): Boolean {
+        return try {
+            val config = loadedConfig ?: loadConfig()
+            val updatedConfig = config.copy(
+                api = config.api.copy(
+                    keys = config.api.keys.toMutableMap().apply {
+                        this[provider] = apiKey
+                    }
+                )
+            )
+            saveAppConfig(updatedConfig)
+        } catch (e: Exception) {
+            Logger.error("Failed to save app settings: ${e.message}", throwable = e)
+            false
+        }
+    }
+
+    /**
+     * Save application settings (API keys)
+     */
+    fun saveEnvironmentVariable(key: String, value: String): Boolean {
+        return try {
+            val config = loadedConfig ?: loadConfig()
+            val updatedConfig = config.copy(
+                env = config.env.toMutableMap().apply {
+                    this[key] = value
+                }
+            )
+            saveAppConfig(updatedConfig)
+        } catch (e: Exception) {
+            Logger.error("Failed to save app settings: ${e.message}", throwable = e)
+            false
+        }
+    }
+
+    fun saveAppConfig(config: AppConfig): Boolean {
+        return try {
+            val jsonContent = json.encodeToString(config)
+            Files.writeString(mainConfigFile, jsonContent)
+
+            loadedConfig = config
+            Logger.info("App settings saved successfully")
+
+            _settingsUpdatedFlow.tryEmit(config)
+            true
+        } catch (e: Exception) {
+            Logger.error("Failed to save app settings: ${e.message}", throwable = e)
+            false
+        }
+    }
+
+    /**
+     * Get agent provider configuration by name
+     * Returns null if provider is not configured
+     */
+    fun getAgentConfig(providerName: String): AgentProviderConfig? {
+        return try {
+            val config = loadedConfig ?: loadConfig()
+            config.agent.providers[providerName]
+        } catch (e: Exception) {
+            Logger.error("Failed to get agent config for provider '$providerName': ${e.message}", throwable = e)
+            null
+        }
+    }
+
+    /**
+     * Get API key by name
+     */
+    fun getApiKey(keyName: String): String? {
+        return try {
+            val config = loadedConfig ?: loadConfig()
+            config.api.keys[keyName]?.takeIf { it.isNotEmpty() }
+        } catch (e: Exception) {
+            Logger.error("Failed to get API key for '$keyName': ${e.message}", throwable = e)
+            null
+        }
+    }
+
+    /**
+     * Get environment variable by name
+     */
+    fun getEnvironmentVariable(keyName: String): String? {
+        return try {
+            val config = loadedConfig ?: loadConfig()
+            config.env[keyName]?.takeIf { it.isNotEmpty() }
+        } catch (e: Exception) {
+            Logger.error("Failed to get API key for '$keyName': ${e.message}", throwable = e)
+            null
+        }
+    }
+
+    /**
+     * Get all configured agent providers
+     */
+    fun getConfiguredProviders(): Set<String> {
+        return try {
+            val config = loadedConfig ?: loadConfig()
+            config.agent.providers.keys
+        } catch (e: Exception) {
+            Logger.error("Failed to get configured providers: ${e.message}", throwable = e)
+            emptySet()
+        }
     }
 
     private fun getOperatingSystem(): OS {
@@ -280,3 +351,4 @@ data class AppInfo(
     val configDir: String,
     val isFirstRun: Boolean
 )
+
