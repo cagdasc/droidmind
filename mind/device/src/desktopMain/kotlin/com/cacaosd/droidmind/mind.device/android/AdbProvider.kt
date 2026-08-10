@@ -7,14 +7,14 @@ import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
 
-fun getAdb(): AndroidDebugBridge = runBlocking {
+fun getAdb(androidHome: String): AndroidDebugBridge = runBlocking {
     AndroidDebugBridge.init(false)
 
-    val androidHome = System.getenv("ANDROID_HOME")
-    if (androidHome.isNullOrEmpty()) error("ANDROID_HOME is not set")
     Logger.debug("ANDROID_HOME: $androidHome")
 
-    AndroidDebugBridge.getBridge() ?: createAdb(androidHome)
+    val sdkHome = System.getenv("ANDROID_HOME") ?: androidHome
+
+    AndroidDebugBridge.getBridge() ?: createAdb(androidHome = sdkHome)
 }
 
 private suspend fun createAdb(androidHome: String): AndroidDebugBridge = AndroidDebugBridge.createBridge(

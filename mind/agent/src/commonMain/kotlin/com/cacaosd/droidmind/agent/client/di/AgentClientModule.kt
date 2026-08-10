@@ -3,7 +3,7 @@ package com.cacaosd.droidmind.agent.client.di
 import ai.koog.utils.time.KoogClock
 import com.cacaosd.droidmind.agent.client.DefaultAgentClientFactory
 import com.cacaosd.droidmind.agent.session.DefaultScenarioExecutor
-import com.cacaosd.droidmind.agent.strategy.di.OneshotInteractionVerificationQualifier
+import com.cacaosd.droidmind.agent.strategy.di.SteppedInteractionVerificationQualifier
 import com.cacaosd.droidmind.agent.strategy.di.strategyModule
 import com.cacaosd.droidmind.agent.tools.di.toolsModule
 import com.cacaosd.droidmind.core.config.di.SelfResolveQualifier
@@ -25,7 +25,7 @@ val agentClientModule = module {
         DefaultAgentClientFactory(
             appConfigManager = get(),
             toolRegistry = get(),
-            aiAgentStrategy = get(OneshotInteractionVerificationQualifier),
+            aiAgentStrategy = get(SteppedInteractionVerificationQualifier),
             agentEventFlow = get(AgentEventFlowQualifier),
             clock = get(),
             koogClock = get()

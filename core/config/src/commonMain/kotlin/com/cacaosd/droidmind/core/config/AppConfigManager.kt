@@ -110,7 +110,6 @@ class AppConfigManager(
      */
     private fun createDefaultConfigFiles() {
         if (!Files.exists(mainConfigFile)) {
-            val envVarExample = $$"${ENV_VAR_NAME}"
             val jsonContent = $$"""
                 {
                   "_comment": "DroidMind Configuration File",
