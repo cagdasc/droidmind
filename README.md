@@ -1,5 +1,7 @@
 # DroidMind
 
+<img src="assets/logo.png" alt="DroidMind Logo" width="150">
+
 A playful AI for Android automation — turn plain language into device actions.
 
 <div align="center">
