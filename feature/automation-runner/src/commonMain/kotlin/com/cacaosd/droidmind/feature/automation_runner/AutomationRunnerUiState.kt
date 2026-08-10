@@ -17,7 +17,8 @@ data class AutomationRunnerUiState(
     val executionState: ExecutionState = ExecutionState.Idle,
     val automationScenarios: List<AutomationScenario> = emptyList(),
     val selectedAutomationScenario: AutomationScenario? = null,
-    val promptMode: PromptMode = PromptMode.PLAIN_TEXT
+    val promptMode: PromptMode = PromptMode.PLAIN_TEXT,
+    val settingsDialogUiState: SettingsDialogUiState = SettingsDialogUiState()
 )
 
 data class AutomationScenario(

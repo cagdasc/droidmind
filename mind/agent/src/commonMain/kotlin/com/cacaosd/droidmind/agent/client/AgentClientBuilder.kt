@@ -19,6 +19,12 @@ import ai.koog.utils.io.use
 import ai.koog.utils.time.KoogClock
 import com.cacaosd.droidmind.domain.AgentClient
 import com.cacaosd.droidmind.domain.ModelType
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.time.ExperimentalTime
 
 /**
@@ -213,15 +219,27 @@ class AgentClientBuilder private constructor(
         )
     }
 
+    private var agentJob: Deferred<Unit>? = null
+    private val agentMutex = Mutex()
+
     override val modelName: String
         get() = llmModel.toModelInfo().model
 
     override val modelProvider: String
         get() = llmModel.toModelInfo().provider
 
-    override suspend fun executePrompt(prompt: String) {
-        build().use {
-            it.run(prompt)
+    override suspend fun executePrompt(prompt: String) = coroutineScope {
+        agentMutex.withLock {
+            agentJob = async {
+                build().use {
+                    it.run(prompt)
+                }
+            }
+            agentJob?.await()
         }
+    }
+
+    override suspend fun stop() {
+        agentJob?.cancelAndJoin()
     }
 }

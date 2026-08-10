@@ -11,6 +11,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core:logging"))
+            implementation(project(":core:config"))
             implementation(project(":domain:local"))
             implementation(project(":mind:device"))
             implementation(project(":mind:layout"))

@@ -22,19 +22,64 @@ results, and reports back. Great for demos, test automation, and exploring LLM-d
 
 ## Quick start
 
-Build the project:
+### Configuration:
+
+On first run the app will create a default configuration file. Location by OS:
+
+- Linux: $HOME/.config/DroidMind/config.json
+- macOS: $HOME/Library/Application Support/DroidMind/config.json
+- Windows: %APPDATA%/DroidMind/config.json
+
+The generated __config.json__ contains an "api.keys" section (gemini, ollama) and an "agent.providers" map. Add your API
+keys or provider entries to enable remote/local agents. Currently supported providers: Gemini and Ollama by default.
+
+```json
+{
+  "app": {
+    "name": "droidmind",
+    "version": "0.0.1"
+  },
+  "env": {
+    "_comment": "Environment variables for the app (supports env vars: \"${ENV_VAR_NAME}\")",
+    "ANDROID_HOME": "${ENV_VAR_NAME}"
+  },
+  "api": {
+    "keys": {
+      "_comment": "Add your API keys here (supports env vars: \"${ENV_VAR_NAME}\")",
+      "gemini": "${GEMINI_API_KEY}",
+      "ollama": ""
+    }
+  },
+  "agent": {
+    "providers": {
+      "google": {
+        "maxIterations": 250,
+        "temperature": 0.2,
+        "baseUrl": ""
+      },
+      "ollama": {
+        "maxIterations": 100,
+        "temperature": 0.7,
+        "baseUrl": "http://localhost:11434"
+      }
+    }
+  }
+}
+```
+
+### Build the project:
 
 ```bash
 ./gradlew build
 ```
 
-Run the desktop app (Compose UI):
+### Run the desktop app (Compose UI):
 
 ```bash
 ANDROID_HOME={ANDROID_SDK_PATH} ./gradlew composeApp:run
 ```
 
-Build the ACP executable and configure your `acp.json:
+### Build the ACP executable and configure your `acp.json:
 
 ```bash
 ./gradlew :acp-starter:clean :acp-starter:installDist
@@ -55,12 +100,21 @@ Build the ACP executable and configure your `acp.json:
 }
 ```
 
+Even though set __ANDROID_HOME__ in the [config.json](#configuration), you have to also set it in your shell
+environment. This will be fixed in the future.
+
 ## Example scenario
 
 "***Open Youtube app and type 'First video in Youtube' in search box and tap enter after that verify 'Me at the zoo'
 text is visible. If yes click it and open video. Check screen and tell me the channel name 'jawed'.***" — the agent will
-plan
-steps, interact with the device UI, and verify results.
+plan steps, interact with the device UI, and verify results.
+
+### Agent strategies
+
+- __SteppedDeviceInteractionStrategy__ (Enabled by default) — preferred for structured multi-step plans.
+  See [the strategy diagram](STEPPED_DEVICE_INTERACTION_STRATEGY.md), flow notes, storage keys, and edge behaviors.
+- __OneShotDeviceInteractionStrategy__ — single-pass request → interact → optional verify flow.
+  See [the strategy diagram](ONE_SHOT_DEVICE_INTERACTION_STRATEGY.md), flow notes, storage keys, and edge behaviors.
 
 ## Contributing
 

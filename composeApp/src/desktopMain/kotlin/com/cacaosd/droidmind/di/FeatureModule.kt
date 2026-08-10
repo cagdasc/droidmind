@@ -1,6 +1,7 @@
 package com.cacaosd.droidmind.di
 
 import com.cacaosd.droidmind.agent.client.di.AgentEventFlowQualifier
+import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.local.scenario.ScenarioRepository
 import com.cacaosd.droidmind.domain.session.ScenarioExecutor
@@ -48,7 +49,9 @@ val featureModule = module {
             devicePollUseCase = get(),
             installedAppsPollUseCase = get(),
             scenarioRepository = get<ScenarioRepository>(),
-            platformDispatchers = get()
+            platformDispatchers = get(),
+            appConfigManager = get<AppConfigManager>()
         )
     }
 }
+

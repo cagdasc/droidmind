@@ -75,6 +75,13 @@ private fun InternalAutomationRunnerScreen(
             )
         }
     }
+
+    // Settings Dialog
+    SettingsDialog(
+        settingsDialogUiState = automationRunnerUiState.settingsDialogUiState,
+        onSave = onAction,
+        onDismiss = { onAction(AutomationRunnerAction.SettingsDialogDismissed) }
+    )
 }
 
 @Composable
@@ -269,7 +276,7 @@ private fun HeaderSection(
 
             // Settings buttons
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(onClick = { }) {
+                IconButton(onClick = { onAction(AutomationRunnerAction.SettingsDialogClicked) }) {
                     Icon(Icons.Default.Settings, contentDescription = null, tint = Color.Gray)
                 }
                 IconButton(onClick = { }) {
@@ -360,6 +367,9 @@ private fun ScenarioPanel(
                 automationRunnerUiState.selectedAutomationScenario?.let {
                     onAction(AutomationRunnerAction.RunScenarioClicked(it))
                 }
+            },
+            onStop = {
+                onAction(AutomationRunnerAction.StopScenarioClicked)
             }
         )
     }

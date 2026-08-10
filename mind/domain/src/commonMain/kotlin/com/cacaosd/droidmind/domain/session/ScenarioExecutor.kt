@@ -13,4 +13,6 @@ interface ScenarioExecutor {
     }
 
     suspend fun execute(agentClient: AgentClient, deviceSerial: String?, packageName: String, prompt: String)
+
+    suspend fun cancel(agentClient: AgentClient)
 }

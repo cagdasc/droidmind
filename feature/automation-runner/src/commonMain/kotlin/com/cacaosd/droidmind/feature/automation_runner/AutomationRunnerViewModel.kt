@@ -4,6 +4,7 @@ package com.cacaosd.droidmind.feature.automation_runner
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cacaosd.droidmind.core.config.AppConfigManager
 import com.cacaosd.droidmind.domain.AgentEvent
 import com.cacaosd.droidmind.domain.local.scenario.ScenarioModel
 import com.cacaosd.droidmind.domain.local.scenario.ScenarioRepository
@@ -34,7 +35,8 @@ class AutomationRunnerViewModel(
     private val devicePollUseCase: DevicePollUseCase,
     private val installedAppsPollUseCase: InstalledAppsPollUseCase,
     private val scenarioRepository: ScenarioRepository,
-    private val platformDispatchers: PlatformDispatchers
+    private val platformDispatchers: PlatformDispatchers,
+    private val appConfigManager: AppConfigManager
 ) : ViewModel() {
     private val _automationRunnerUiState = MutableStateFlow(AutomationRunnerUiState())
     val automationRunnerUiState: StateFlow<AutomationRunnerUiState> = _automationRunnerUiState
@@ -42,15 +44,38 @@ class AutomationRunnerViewModel(
     private val scenarioUpdateFlow = MutableSharedFlow<ScenarioModel>()
 
     private var installedAppsJob: Job? = null
-    private var agentJob: Job? = null
     private val numberFormat: NumberFormat = NumberFormat.getNumberInstance(Locale.UK)
 
     init {
+        listenConfigChanges()
+        loadSettings()
         pollDevices()
         loadAvailableLLMs()
         fetchScenarios()
         updateScenariosOnChange()
         collectAgentEvents()
+    }
+
+    private fun listenConfigChanges() {
+        appConfigManager.settingsUpdatedFlow
+            .onEach {
+                loadSettings()
+                loadAvailableLLMs()
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun loadSettings() {
+        val geminiApiKey = appConfigManager.getApiKey("gemini").orEmpty()
+        val androidHome = appConfigManager.getEnvironmentVariable("ANDROID_HOME").orEmpty()
+        _automationRunnerUiState.update { state ->
+            state.copy(
+                settingsDialogUiState = state.settingsDialogUiState.copy(
+                    androidHome = androidHome,
+                    geminiApiKey = geminiApiKey
+                )
+            )
+        }
     }
 
     private fun pollDevices() {
@@ -94,7 +119,7 @@ class AutomationRunnerViewModel(
                     )
                 }
             _automationRunnerUiState.update { state ->
-                state.copy(availableLLMs = availableLLMs)
+                state.copy(availableLLMs = availableLLMs, selectedLLM = null)
             }
         }
     }
@@ -278,8 +303,11 @@ class AutomationRunnerViewModel(
             }
 
             AutomationRunnerAction.StopScenarioClicked -> {
-                // Need to check agent events
-                agentJob?.cancel()
+                val currentState = _automationRunnerUiState.value
+                val selectedLLM = currentState.selectedLLM ?: return
+                viewModelScope.launch {
+                    scenarioExecutor.cancel(agentClient = selectedLLM.agentClient)
+                }
             }
 
             is AutomationRunnerAction.UpdatePrompt -> {
@@ -306,6 +334,10 @@ class AutomationRunnerViewModel(
             AutomationRunnerAction.ClearLogs -> clearLogs()
             is AutomationRunnerAction.PromptModeChanged -> handlePromptModeChange(action.promptMode)
             is AutomationRunnerAction.LLMSelected -> handleLLMSelection(action)
+
+            AutomationRunnerAction.SettingsDialogClicked -> handleSettingsDialogClicked()
+            AutomationRunnerAction.SettingsDialogDismissed -> handleSettingsDialogDismissed()
+            is AutomationRunnerAction.SaveSettings -> handleSaveSettings(action.androidHome, action.geminiApiKey)
         }
     }
 
@@ -394,8 +426,7 @@ class AutomationRunnerViewModel(
         val installedApp = currentState.selectedApp ?: return
         val selectedLLM = currentState.selectedLLM ?: return
 
-        agentJob?.cancel()
-        agentJob = viewModelScope.launch(platformDispatchers.default) {
+        viewModelScope.launch(platformDispatchers.default) {
             val scenarioExecutionRequest = ScenarioExecutionRequest.builder(
                 deviceSerial = deviceData.serial,
                 packageName = installedApp.packageName,
@@ -448,6 +479,83 @@ class AutomationRunnerViewModel(
                         selectedApp = null, chipItems = state.chipItems.toMutableSet().apply {
                             remove(chipItem)
                         })
+                }
+            }
+        }
+    }
+
+    private fun handleSettingsDialogClicked() {
+        val geminiApiKey = appConfigManager.getApiKey("gemini").orEmpty()
+        val androidHome = appConfigManager.getEnvironmentVariable("ANDROID_HOME").orEmpty()
+        _automationRunnerUiState.update { state ->
+            state.copy(
+                settingsDialogUiState = state.settingsDialogUiState.copy(
+                    isOpen = true,
+                    androidHome = androidHome,
+                    geminiApiKey = geminiApiKey,
+                    errorMessage = null,
+                    successMessage = null
+                )
+            )
+        }
+    }
+
+    private fun handleSettingsDialogDismissed() {
+        _automationRunnerUiState.update { state ->
+            state.copy(
+                settingsDialogUiState = state.settingsDialogUiState.copy(
+                    isOpen = false,
+                    errorMessage = null,
+                    successMessage = null
+                )
+            )
+        }
+    }
+
+    private fun handleSaveSettings(androidHome: String, geminiApiKey: String) {
+        viewModelScope.launch {
+            _automationRunnerUiState.update { state ->
+                state.copy(
+                    settingsDialogUiState = state.settingsDialogUiState.copy(
+                        isLoading = true,
+                        errorMessage = null,
+                        successMessage = null
+                    )
+                )
+            }
+
+            try {
+                val apiKeySuccess = appConfigManager.saveApiKey("gemini", geminiApiKey)
+                val envVarSuccess = appConfigManager.saveEnvironmentVariable("ANDROID_HOME", androidHome)
+
+                if (apiKeySuccess || envVarSuccess) {
+                    _automationRunnerUiState.update { state ->
+                        state.copy(
+                            settingsDialogUiState = state.settingsDialogUiState.copy(
+                                isLoading = false,
+                                successMessage = "Settings saved successfully",
+                                isOpen = false
+                            )
+                        )
+                    }
+                } else {
+                    _automationRunnerUiState.update { state ->
+                        state.copy(
+                            settingsDialogUiState = state.settingsDialogUiState.copy(
+                                isLoading = false,
+                                errorMessage = "Failed to save settings"
+                            )
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _automationRunnerUiState.update { state ->
+                    state.copy(
+                        settingsDialogUiState = state.settingsDialogUiState.copy(
+                            isLoading = false,
+                            errorMessage = "Error: ${e.message}"
+                        )
+                    )
                 }
             }
         }

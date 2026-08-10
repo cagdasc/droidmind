@@ -3,6 +3,7 @@ package com.cacaosd.droidmind.feature.automation_runner.composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,6 +44,7 @@ fun ScenarioTextField(
     chipItems: List<ChipItem>,
     onChipRemove: (ChipItem) -> Unit,
     onRun: () -> Unit,
+    onStop: () -> Unit,
     label: String = "Scenario"
 ) {
     val keywordColor = Color(0xFF21042B)
@@ -143,19 +145,36 @@ fun ScenarioTextField(
                     .padding(bottom = AppTheme.sizes.small, end = AppTheme.sizes.medium)
                     .fillMaxHeight()
             ) {
-                Button(
-                    onClick = onRun,
+                Row(
                     modifier = Modifier.align(Alignment.BottomEnd),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        contentColor = MaterialTheme.colorScheme.onSecondary,
-                        disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .5f),
-                        disabledContentColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = .5f)
-                    ),
-                    shape = MaterialTheme.shapes.medium,
-                    enabled = enabled
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Button(
+                        onClick = onRun,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary,
+                            disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .5f),
+                            disabledContentColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = .5f)
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                        enabled = enabled
+                    ) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    }
+                    Button(
+                        onClick = onStop,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary,
+                            disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = .5f),
+                            disabledContentColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = .5f)
+                        ),
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Icon(Icons.Default.Stop, contentDescription = null)
+                    }
                 }
             }
         },
@@ -235,7 +254,8 @@ fun PreviewSyntaxHighlightedTextField() {
                     ChipItem.App(InstalledApp(packageName = "com.example.app"))
                 ),
                 onChipRemove = {},
-                onRun = {}
+                onRun = {},
+                onStop = {}
             )
         }
     }

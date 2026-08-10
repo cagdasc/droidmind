@@ -31,7 +31,7 @@ actual fun provideAndroidDeviceController(
     clock: Clock
 ): DeviceController =
     AndroidDeviceController(
-        adb = getAdb(),
+        adb = getAdb(appConfigManager.getEnvironmentVariable("ANDROID_HOME") ?: error("ANDROID_HOME not set")),
         layoutParser = layoutParser,
         appConfigManager = appConfigManager,
         platformDispatchers = platformDispatchers,

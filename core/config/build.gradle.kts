@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 kotlin {
@@ -11,6 +12,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core:logging"))
             implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.coroutines.core)
 
             implementation(libs.xmlutil.core)
             implementation(libs.xmlutil.serialization)
