@@ -5,8 +5,9 @@
 A playful AI for Android automation — turn plain language into device actions.
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/5a6e36a6-ee3d-403d-9a59-99ff70239f83" width="80%" controls></video>
-  <p><em>Watch a short demo of the ACP agent interpreting natural language and controlling YouTube on a device.</em></p>
+  <video src="https://github.com/user-attachments/assets/97d3cde7-6b9b-43f6-bebf-487d2d618782" width="45%" controls></video>
+  <video src="https://github.com/user-attachments/assets/e449050a-60f6-4399-8212-e2f8554f5a59" width="45%" controls></video>
+  <p><em>Manual amount entry and quick amount selection.</em></p>
 </div>
 
 ## Why DroidMind?
@@ -107,9 +108,8 @@ environment. This will be fixed in the future.
 
 ## Example scenario
 
-"***Open Youtube app and type 'First video in Youtube' in search box and tap enter after that verify 'Me at the zoo'
-text is visible. If yes click it and open video. Check screen and tell me the channel name 'jawed'.***" — the agent will
-plan steps, interact with the device UI, and verify results.
+"***Open the "AI Money Transfer" app and transfer 10 pounds to the account 00-00-01 12985684. Verify that the transfer
+is successful.***" — the agent will plan steps, interact with the device UI, and verify results.
 
 ### Agent strategies
 
